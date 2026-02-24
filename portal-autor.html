@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envío de Artículo · Revista Académica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 15px;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .form-row {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #444;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e53e3e;
+            margin-left: 3px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fafafa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background-color: white;
+        }
+
+        /* valid / invalid visual feedback (se aplica con JS) */
+        input.valid, select.valid, textarea.valid {
+            border-color: #38a169;
+        }
+
+        input.invalid, select.invalid, textarea.invalid {
+            border-color: #e53e3e;
+        }
+
+        .field-error {
+            color: #e53e3e;
+            font-size: 13px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 20px 0 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: 400;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            flex: 1 1 auto;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-weight: 500;
+            padding: 10px 18px;
+        }
+
+        .btn-outline:hover {
+            background: #667eea10;
+        }
+
+        .message-area {
+            margin: 20px 0 10px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f0f4ff;
+            border-left: 6px solid #667eea;
+            font-size: 15px;
+        }
+
+        .success-message {
+            background: #e6fffa;
+            border-left-color: #2c7a5a;
+            color: #1e4b3c;
+        }
+
+        .recent-list {
+            margin-top: 30px;
+        }
+
+        .recent-list h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: #f7f9fc;
+            color: #444;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .demo-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #667eea;
+        }
+
+        code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #eaeef5;
+            margin: 25px 0 15px;
+        }
+
+        @media (max-width: 600px) {
+            .card { padding: 20px; }
+            .btn-group { flex-direction: column; }
+            h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- TARJETA PRINCIPAL: FORMULARIO DE ENVÍO -->
+    <div class="card">
+        <h1>📤 Envío de Artículo · Revista Académica</h1>
+        <div class="subtitle">Complete el formulario para someter su trabajo a revisión por pares</div>
+
+        <form id="envioForm" novalidate>
+            <!-- NOMBRE COMPLETO -->
+            <div class="form-row">
+                <label>Nombre completo del autor <span class="required">*</span></label>
+                <input type="text" id="autor-nombre" placeholder="Ej. María González López" autocomplete="off">
+                <div class="field-error" id="error-nombre"></div>
+            </div>
+
+            <!-- CORREO -->
+            <div class="form-row">
+                <label>Correo electrónico <span class="required">*</span></label>
+                <input type="email" id="autor-email" placeholder="autor@institucion.edu">
+                <div class="field-error" id="error-email"></div>
+            </div>
+
+            <!-- INSTITUCIÓN (opcional) -->
+            <div class="form-row">
+                <label>Institución / Afiliación</label>
+                <input type="text" id="autor-institucion" placeholder="Universidad / Centro de investigación">
+                <div class="field-error" id="error-institucion"></div>
+            </div>
+
+            <!-- TÍTULO ARTÍCULO -->
+            <div class="form-row">
+                <label>Título del artículo <span class="required">*</span></label>
+                <input type="text" id="articulo-titulo" placeholder="Título completo del trabajo">
+                <div class="field-error" id="error-titulo"></div>
+            </div>
+
+            <!-- ÁREA TEMÁTICA -->
+            <div class="form-row">
+                <label>Área temática <span class="required">*</span></label>
+                <select id="articulo-area">
+                    <option value="" disabled selected>-- Seleccione una opción --</option>
+                    <option value="Ciencias de la Computación">Ciencias de la Computación</option>
+                    <option value="Ingeniería">Ingeniería</option>
+                    <option value="Matemáticas">Matemáticas</option>
+                    <option value="Física">Física</option>
+                    <option value="Biología">Biología</option>
+                    <option value="Ciencias Sociales">Ciencias Sociales</option>
+                </select>
+                <div class="field-error" id="error-area"></div>
+            </div>
+
+            <!-- RESUMEN -->
+            <div class="form-row">
+                <label>Resumen / Abstract <span class="required">*</span></label>
+                <textarea id="articulo-resumen" rows="4" placeholder="Escriba un resumen de su trabajo (máximo 250 palabras)"></textarea>
+                <div class="field-error" id="error-resumen"></div>
+            </div>
+
+            <!-- ARCHIVO -->
+            <div class="form-row">
+                <label>Subir archivo (PDF, TEX, DOC/DOCX) <span class="required">*</span></label>
+                <input type="file" id="articulo-archivo" accept=".pdf,.tex,.doc,.docx">
+                <div class="field-error" id="error-archivo"></div>
+            </div>
+
+            <!-- CHECKBOX ORIGINALIDAD -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="confirmacion-original">
+                <label for="confirmacion-original">Confirmo que este trabajo es original y no ha sido publicado previamente <span class="required">*</span></label>
+            </div>
+            <div class="field-error" id="error-checkbox"></div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnEnviar" disabled>📨 Enviar artículo</button>
+                <button type="button" class="btn btn-secondary" id="btnCancelar">🗑️ Cancelar / Limpiar</button>
+            </div>
+
+            <!-- ÁREA DE MENSAJE (ÉXITO / ERROR GENERAL) -->
+            <div id="mensajeGlobal" class="message-area" style="display: none;"></div>
+        </form>
+
+        <!-- DEMO INFO (mismo estilo que portal-autor) -->
+        <div class="demo-note">
+            <p><strong>📌 Simulación:</strong> Los archivos no se guardan realmente, solo referencia. Se genera código ART-2026-XXX y se almacena en localStorage.</p>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: ARTÍCULOS ENVIADOS RECIENTEMENTE (desde localStorage) -->
+    <div class="card recent-list">
+        <h3>📋 Artículos enviados recientemente</h3>
+        <div class="table-responsive" id="recientesContainer">
+            <table id="tablaRecientes">
+                <thead>
+                    <tr><th>Código</th><th>Título</th><th>Fecha envío</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody id="recientesBody">
+                    <!-- se llena con JS -->
+                </tbody>
+            </table>
+        </div>
+        <p style="text-align:right; font-size:13px; color:#888; margin-top:10px;">Los datos persisten en localStorage</p>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---- CONSTANTES Y CLAVES ----
+        const STORAGE_KEY = 'articulos_enviados';
+
+        // ---- ELEMENTOS DEL DOM ----
+        const form = document.getElementById('envioForm');
+        const nombre = document.getElementById('autor-nombre');
+        const email = document.getElementById('autor-email');
+        const institucion = document.getElementById('autor-institucion');
+        const titulo = document.getElementById('articulo-titulo');
+        const area = document.getElementById('articulo-area');
+        const resumen = document.getElementById('articulo-resumen');
+        const archivo = document.getElementById('articulo-archivo');
+        const checkbox = document.getElementById('confirmacion-original');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const mensajeGlobal = document.getElementById('mensajeGlobal');
+        const recientesBody = document.getElementById('recientesBody');
+
+        // errores por campo
+        const errorNombre = document.getElementById('error-nombre');
+        const errorEmail = document.getElementById('error-email');
+        const errorTitulo = document.getElementById('error-titulo');
+        const errorArea = document.getElementById('error-area');
+        const errorResumen = document.getElementById('error-resumen');
+        const errorArchivo = document.getElementById('error-archivo');
+        const errorCheckbox = document.getElementById('error-checkbox');
+
+        // ---- FUNCIÓN PARA VALIDAR TODO Y ACTUALIZAR BOTÓN ----
+        function validarFormulario() {
+            let valido = true;
+
+            // Helper para validar campo texto
+            function validarCampo(campo, errorElement, condicion, mensaje) {
+                const esValido = condicion(campo.value.trim());
+                if (!esValido) {
+                    campo.classList.add('invalid');
+                    campo.classList.remove('valid');
+                    errorElement.textContent = mensaje;
+                    return false;
+                } else {
+                    campo.classList.add('valid');
+                    campo.classList.remove('invalid');
+                    errorElement.textContent = '';
+                    return true;
+                }
+            }
+
+            // nombre
+            valido &= validarCampo(nombre, errorNombre, v => v !== '', 'El nombre es obligatorio');
+
+            // email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            valido &= validarCampo(email, errorEmail, v => emailRegex.test(v), 'Correo electrónico inválido');
+
+            // título
+            valido &= validarCampo(titulo, errorTitulo, v => v !== '', 'El título es obligatorio');
+
+            // área
+            const areaValida = area.value && area.value !== '';
+            if (!areaValida) {
+                area.classList.add('invalid');
+                area.classList.remove('valid');
+                errorArea.textContent = 'Seleccione un área temática';
+                valido = false;
+            } else {
+                area.classList.add('valid');
+                area.classList.remove('invalid');
+                errorArea.textContent = '';
+            }
+
+            // resumen
+            valido &= validarCampo(resumen, errorResumen, v => v.trim() !== '', 'El resumen es obligatorio');
+
+            // archivo (solo validamos que haya un archivo seleccionado, sin importar contenido)
+            const archivoValido = archivo.files.length > 0;
+            if (!archivoValido) {
+                archivo.classList.add('invalid');
+                archivo.classList.remove('valid');
+                errorArchivo.textContent = 'Debe seleccionar un archivo';
+                valido = false;
+            } else {
+                archivo.classList.add('valid');
+                archivo.classList.remove('invalid');
+                errorArchivo.textContent = '';
+            }
+
+            // checkbox
+            if (!checkbox.checked) {
+                errorCheckbox.textContent = 'Debe confirmar la originalidad del trabajo';
+                valido = false;
+            } else {
+                errorCheckbox.textContent = '';
+            }
+
+            // Habilitar/deshabilitar botón
+            btnEnviar.disabled = !valido;
+            return valido;
+        }
+
+        // ---- EVENTOS DE VALIDACIÓN EN TIEMPO REAL (blur / change) ----
+        [nombre, email, titulo, resumen].forEach(campo => {
+            campo.addEventListener('blur', validarFormulario);
+            campo.addEventListener('input', validarFormulario);
+        });
+        area.addEventListener('change', validarFormulario);
+        archivo.addEventListener('change', validarFormulario);
+        checkbox.addEventListener('change', validarFormulario);
+        // Validar también al inicio para reflejar posibles valores precargados
+        window.addEventListener('load', validarFormulario);
+
+        // ---- FUNCIÓN PARA GENERAR CÓDIGO ART-2026-XXX ----
+        function generarCodigoUnico() {
+            const random = Math.floor(Math.random() * 900 + 100); // 100-999
+            return `ART-2026-${random}`;
+        }
+
+        // ---- GUARDAR EN LOCALSTORAGE ----
+        function guardarEnStorage(articuloData) {
+            let existentes = [];
+            try {
+                existentes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (e) {
+                existentes = [];
+            }
+            existentes.unshift(articuloData); // más reciente arriba
+            // mantener sólo últimos 10 para no saturar vista
+            if (existentes.length > 10) existentes.pop();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existentes));
+        }
+
+        // ---- CARGAR Y MOSTRAR TABLA DE RECIENTES ----
+        function cargarRecientes() {
+            let articulos = [];
+            try {
+                articulos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (e) {
+                articulos = [];
+            }
+
+            if (articulos.length === 0) {
+                recientesBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#888;">No hay artículos enviados aún</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            articulos.forEach(art => {
+                html += `<tr>
+                    <td><code>${art.codigo}</code></td>
+                    <td>${art.titulo.substring(0,30)}${art.titulo.length>30?'…':''}</td>
+                    <td>${art.fecha}</td>
+                    <td><span class="status-badge">${art.estado}</span></td>
+                    <td><button class="action-btn" data-codigo="${art.codigo}">Consultar</button></td>
+                </tr>`;
+            });
+            recientesBody.innerHTML = html;
+
+            // añadir evento a los botones "Consultar"
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const codigo = e.target.getAttribute('data-codigo');
+                    alert(`🔍 Simulación: redirigir a portal-autor.html con código ${codigo}\n(En la versión final enlazaría a portal-autor.html?codigo=${codigo})`);
+                    // Podrías abrir en nueva pestaña: window.open(`portal-autor.html?codigo=${codigo}`)
+                });
+            });
+        }
+
+        // ---- MOSTRAR MENSAJE DE ÉXITO CON CÓDIGO Y BOTÓN DE DESCARGA .TXT ----
+        function mostrarExitoConCodigo(codigo) {
+            // Ocultar posibles mensajes anteriores
+            mensajeGlobal.style.display = 'block';
+            mensajeGlobal.className = 'message-area success-message';
+            mensajeGlobal.innerHTML = `
+                <strong>✅ Artículo recibido.</strong> Su código de seguimiento es: <code style="background:#d0eae5;">${codigo}</code><br>
+                Guarde este código para consultar el estado.
+                <div style="margin-top:12px;">
+                    <button class="btn btn-outline" id="guardarTxtBtn" style="padding:8px 15px; font-size:14px;">💾 Guardar código en .txt</button>
+                    <button class="btn btn-outline" id="nuevoEnvioBtn" style="padding:8px 15px; font-size:14px; margin-left:10px;">📝 Enviar otro artículo</button>
+                </div>
+            `;
+
+            // Evento para guardar .txt
+            document.getElementById('guardarTxtBtn')?.addEventListener('click', () => {
+                const contenido = `Código de seguimiento: ${codigo}\nGuarde este código para consultar el estado en el portal de autor.\n\nFecha: ${new Date().toLocaleString()}`;
+                const blob = new Blob([contenido], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `codigo-${codigo}.txt`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+
+            // Evento para limpiar y volver a enviar (reset suave)
+            document.getElementById('nuevoEnvioBtn')?.addEventListener('click', () => {
+                form.reset();
+                mensajeGlobal.style.display = 'none';
+                // Quitar clases de validación
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.classList.remove('valid', 'invalid');
+                });
+                validarFormulario();
+                cargarRecientes();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // ---- ENVIO PRINCIPAL (click en botón) ----
+        btnEnviar.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            // validación final por si acaso
+            if (!validarFormulario()) return;
+
+            // Generar código
+            const codigo = generarCodigoUnico();
+
+            // Fecha actual YYYY-MM-DD
+            const hoy = new Date();
+            const fechaStr = hoy.toISOString().split('T')[0]; // '2026-02-17'
+
+            // Construir objeto de artículo (metadata)
+            const articuloGuardado = {
+                codigo: codigo,
+                autor: nombre.value.trim(),
+                email: email.value.trim(),
+                institucion: institucion.value.trim() || '(no especificada)',
+                titulo: titulo.value.trim(),
+                area: area.value,
+                resumen: resumen.value.trim().substring(0,200) + (resumen.value.length > 200 ? '…' : ''),
+                fecha: fechaStr,
+                estado: 'Pendiente', // estado inicial para el autor
+                // No guardamos archivo real, solo indicador
+                archivo_simulado: archivo.files[0]?.name || 'archivo_seleccionado'
+            };
+
+            // Guardar en localStorage
+            guardarEnStorage(articuloGuardado);
+
+            // Mostrar mensaje de éxito con código
+            mostrarExitoConCodigo(codigo);
+
+            // Actualizar la tabla de recientes
+            cargarRecientes();
+
+            // (Opcional) reset del formulario? lo dejamos a criterio del autor.
+            // Por usabilidad, no hacemos reset automático, pero el botón de "Enviar otro" sí limpia.
+        });
+
+        // ---- BOTÓN CANCELAR / LIMPIAR ----
+        btnCancelar.addEventListener('click', () => {
+            form.reset();
+            // quitar clases de validación
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('valid', 'invalid');
+            });
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            mensajeGlobal.style.display = 'none';
+            validarFormulario();
+        });
+
+        // ---- INICIALIZAR: CARGAR RECIENTES Y VALIDAR ----
+        cargarRecientes();
+        validarFormulario();
+
+        // ---- NOTA: INSTITUCIÓN es opcional, no la validamos ----
+        // (solo para que no marque error)
+        institucion.addEventListener('blur', () => {
+            if (institucion.value.trim() === '') {
+                institucion.classList.remove('invalid');
+                institucion.classList.add('valid'); // opcional se considera válido siempre
+            } else {
+                institucion.classList.add('valid');
+                institucion.classList.remove('invalid');
+            }
+        });
+
+        // Asegurar que institución no rompa validación
+        institucion.classList.add('valid');
+    })();
+</script>
+
+<!-- Breve nota de prueba -->
+<div style="color: white; max-width:750px; margin:0 auto; font-size:14px; background: rgba(0,0,0,0.2); border-radius: 30px; padding: 10px 20px; text-align: center;">
+    ⚡ Cómo probar: Complete todos los campos obligatorios (incluye seleccionar archivo cualquiera) y marque el check. El botón enviar se habilitará. Se generará código ART-2026-XXX y se listará en "enviados recientemente".
+</div>
+</body>
+</html>
