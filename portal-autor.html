@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envío de Artículo · Revista Académica</title>
+    <title>Revista Académica · Envío y Consulta</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
     <style>
         * {
             margin: 0;
@@ -51,6 +53,68 @@
             padding-left: 15px;
         }
 
+        /* Tabs de navegación */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        /* Secciones */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Estilos existentes */
+        .offline-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff9800;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .offline-indicator.show {
+            display: flex;
+        }
+        
         .form-row {
             margin-bottom: 20px;
         }
@@ -85,7 +149,6 @@
             background-color: white;
         }
 
-        /* Estados de validación */
         input.valid, select.valid, textarea.valid {
             border-color: #38a169;
         }
@@ -101,7 +164,6 @@
             min-height: 20px;
         }
 
-        /* Contador de palabras */
         .word-counter {
             display: flex;
             justify-content: space-between;
@@ -127,10 +189,6 @@
             color: #e53e3e;
         }
 
-        .word-limit-note {
-            color: #888;
-        }
-
         .checkbox-group {
             display: flex;
             align-items: flex-start;
@@ -143,14 +201,6 @@
             height: 18px;
             margin-top: 2px;
             accent-color: #667eea;
-        }
-
-        .checkbox-group label {
-            margin-bottom: 0;
-            font-weight: 400;
-            font-size: 15px;
-            color: #333;
-            line-height: 1.4;
         }
 
         .btn-group {
@@ -169,10 +219,11 @@
             cursor: pointer;
             transition: all 0.2s;
             flex: 1 1 auto;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            text-decoration: none;
         }
 
         .btn-primary {
@@ -204,7 +255,7 @@
             border: 2px solid #667eea;
             color: #667eea;
             font-weight: 500;
-            padding: 10px 18px;
+            padding: 8px 15px;
         }
 
         .btn-outline:hover {
@@ -246,21 +297,122 @@
             color: #742a2a;
         }
 
-        .recent-list {
-            margin-top: 30px;
+        /* Estilos para portal de autor */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
         }
 
-        .recent-list h3 {
-            color: #333;
+        .badge-revision {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-aceptado {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-rechazado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .article-title {
             font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
-        .table-responsive {
-            overflow-x: auto;
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .timeline {
+            margin-top: 25px;
+        }
+
+        .timeline h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 20px;
+            width: 2px;
+            height: 35px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .timeline-text {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .login-form {
+            transition: all 0.3s ease;
         }
 
         table {
@@ -286,38 +438,7 @@
             font-size: 14px;
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .action-btn {
-            background: none;
-            border: 1px solid #667eea;
-            color: #667eea;
-            padding: 5px 10px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .action-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .demo-note {
+        .demo-info {
             margin-top: 20px;
             padding: 15px;
             background: #f8f9fa;
@@ -333,138 +454,193 @@
             font-family: monospace;
         }
 
-        hr {
-            border: none;
-            border-top: 2px solid #eaeef5;
-            margin: 25px 0 15px;
-        }
-
         @media (max-width: 600px) {
             .card { padding: 20px; }
             .btn-group { flex-direction: column; }
-            h1 { font-size: 22px; }
+            .tabs { flex-direction: column; }
+            .tab { text-align: center; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <!-- TARJETA PRINCIPAL: FORMULARIO DE ENVÍO -->
-    <div class="card">
-        <h1>📤 Envío de Artículo · Revista Académica</h1>
-        <div class="subtitle">Complete el formulario para someter su trabajo a revisión por pares</div>
+    <div class="offline-indicator" id="offlineIndicator">
+        <span>📴</span> Modo offline
+    </div>
 
-        <form id="envioForm" novalidate>
-            <!-- NOMBRE COMPLETO -->
-            <div class="form-row">
-                <label>Nombre completo del autor <span class="required">*</span></label>
-                <input type="text" id="autor-nombre" placeholder="Ej. María González López" maxlength="100">
-                <div class="field-error" id="error-nombre"></div>
+    <div class="container">
+        <div class="card">
+            <h1>📚 Revista Académica</h1>
+            <div class="subtitle">Sistema de envío y seguimiento de artículos</div>
+
+            <!-- Tabs de navegación -->
+            <div class="tabs">
+                <button class="tab active" onclick="cambiarTab('envio')">📤 Enviar artículo</button>
+                <button class="tab" onclick="cambiarTab('consulta')">🔍 Consultar estado</button>
             </div>
 
-            <!-- CORREO -->
-            <div class="form-row">
-                <label>Correo electrónico <span class="required">*</span></label>
-                <input type="email" id="autor-email" placeholder="autor@institucion.edu">
-                <div class="field-error" id="error-email"></div>
-            </div>
+            <!-- SECCIÓN 1: FORMULARIO DE ENVÍO -->
+            <div id="seccionEnvio" class="section active">
+                <form id="envioForm" novalidate>
+                    <div class="form-row">
+                        <label>Nombre completo del autor <span class="required">*</span></label>
+                        <input type="text" id="autor-nombre" placeholder="Ej. María González López" maxlength="100">
+                        <div class="field-error" id="error-nombre"></div>
+                    </div>
 
-            <!-- INSTITUCIÓN (opcional) -->
-            <div class="form-row">
-                <label>Institución / Afiliación</label>
-                <input type="text" id="autor-institucion" placeholder="Universidad / Centro de investigación">
-                <div class="field-error" id="error-institucion"></div>
-            </div>
+                    <div class="form-row">
+                        <label>Correo electrónico <span class="required">*</span></label>
+                        <input type="email" id="autor-email" placeholder="autor@institucion.edu">
+                        <div class="field-error" id="error-email"></div>
+                    </div>
 
-            <!-- TÍTULO ARTÍCULO -->
-            <div class="form-row">
-                <label>Título del artículo <span class="required">*</span></label>
-                <input type="text" id="articulo-titulo" placeholder="Título completo del trabajo" maxlength="200">
-                <div class="field-error" id="error-titulo"></div>
-            </div>
+                    <div class="form-row">
+                        <label>Institución / Afiliación</label>
+                        <input type="text" id="autor-institucion" placeholder="Universidad / Centro de investigación">
+                        <div class="field-error" id="error-institucion"></div>
+                    </div>
 
-            <!-- ÁREA TEMÁTICA -->
-            <div class="form-row">
-                <label>Área temática <span class="required">*</span></label>
-                <select id="articulo-area">
-                    <option value="" disabled selected>-- Seleccione una opción --</option>
-                    <option value="Ciencias de la Computación">Ciencias de la Computación</option>
-                    <option value="Ingeniería">Ingeniería</option>
-                    <option value="Matemáticas">Matemáticas</option>
-                    <option value="Física">Física</option>
-                    <option value="Biología">Biología</option>
-                    <option value="Ciencias Sociales">Ciencias Sociales</option>
-                </select>
-                <div class="field-error" id="error-area"></div>
-            </div>
+                    <div class="form-row">
+                        <label>Título del artículo <span class="required">*</span></label>
+                        <input type="text" id="articulo-titulo" placeholder="Título completo del trabajo" maxlength="200">
+                        <div class="field-error" id="error-titulo"></div>
+                    </div>
 
-            <!-- RESUMEN CON CONTADOR DE PALABRAS -->
-            <div class="form-row">
-                <label>Resumen / Abstract <span class="required">*</span></label>
-                <textarea id="articulo-resumen" rows="4" placeholder="Escriba un resumen de su trabajo (máximo 250 palabras)"></textarea>
-                <div class="word-counter">
-                    <span class="word-count" id="wordCount">0/250 palabras</span>
-                    <span class="word-limit-note" id="wordLimitNote">🔤 Contando palabras...</span>
+                    <div class="form-row">
+                        <label>Área temática <span class="required">*</span></label>
+                        <select id="articulo-area">
+                            <option value="" disabled selected>-- Seleccione --</option>
+                            <option value="Ciencias de la Computación">Ciencias de la Computación</option>
+                            <option value="Ingeniería">Ingeniería</option>
+                            <option value="Matemáticas">Matemáticas</option>
+                            <option value="Física">Física</option>
+                            <option value="Biología">Biología</option>
+                            <option value="Ciencias Sociales">Ciencias Sociales</option>
+                        </select>
+                        <div class="field-error" id="error-area"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Resumen <span class="required">*</span></label>
+                        <textarea id="articulo-resumen" rows="4" placeholder="Máximo 250 palabras"></textarea>
+                        <div class="word-counter">
+                            <span class="word-count" id="wordCount">0/250 palabras</span>
+                        </div>
+                        <div class="field-error" id="error-resumen"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Archivo (PDF, DOC, DOCX, TEX) <span class="required">*</span></label>
+                        <input type="file" id="articulo-archivo" accept=".pdf,.tex,.doc,.docx">
+                        <div class="field-error" id="error-archivo"></div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="confirmacion-original">
+                        <label for="confirmacion-original">Confirmo que este trabajo es original y no ha sido publicado previamente <span class="required">*</span></label>
+                    </div>
+                    <div class="field-error" id="error-checkbox"></div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" id="btnEnviar" disabled>📨 Enviar artículo</button>
+                        <button type="button" class="btn btn-secondary" id="btnCancelar">🗑️ Limpiar</button>
+                    </div>
+
+                    <div id="mensajeGlobal" class="message-area" style="display: none;"></div>
+                </form>
+
+                <!-- Tabla de envíos recientes -->
+                <div style="margin-top: 30px;">
+                    <h3>📋 Tus últimos envíos</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Título</th><th>Fecha</th><th>Estado</th><th></th></tr>
+                        </thead>
+                        <tbody id="recientesBody">
+                            <tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="field-error" id="error-resumen"></div>
             </div>
 
-            <!-- ARCHIVO -->
-            <div class="form-row">
-                <label>Subir archivo (PDF, TEX, DOC/DOCX) <span class="required">*</span></label>
-                <input type="file" id="articulo-archivo" accept=".pdf,.tex,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                <div class="field-error" id="error-archivo"></div>
-                <div style="font-size:12px; color:#888; margin-top:4px;">Máximo 10 MB</div>
+            <!-- SECCIÓN 2: PORTAL DE AUTOR (CONSULTA) -->
+            <div id="seccionConsulta" class="section">
+                <!-- Login -->
+                <div id="loginScreen" class="login-form">
+                    <div class="form-group">
+                        <label>Código del artículo</label>
+                        <input type="text" id="articleCode" placeholder="Ej: ART-2026-001" value="ART-2026-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Clave de acceso</label>
+                        <input type="password" id="accessKey" placeholder="Clave enviada por email" value="autor123">
+                    </div>
+                    <button class="btn btn-primary" id="consultarBtn">Consultar estado</button>
+                    <div id="errorMsg" class="field-error"></div>
+
+                    <div class="demo-info">
+                        <p><strong>🔍 Códigos de prueba:</strong></p>
+                        <p>📌 <code>ART-2026-001</code> / <code>autor123</code> - En revisión</p>
+                        <p>📌 <code>ART-2026-002</code> / <code>autor456</code> - Aceptado</p>
+                    </div>
+                </div>
+
+                <!-- Pantalla de estado (oculta inicialmente) -->
+                <div id="statusScreen" class="status-screen" style="display: none;">
+                    <div class="status-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h2>Estado del artículo</h2>
+                        <span class="status-badge" id="statusBadge">En revisión</span>
+                    </div>
+
+                    <div class="article-title" id="articleTitle">
+                        Título del artículo aquí
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span id="progressText">2 de 3 revisiones</span>
+                            <span id="progressPercentage">66%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 66%"></div>
+                        </div>
+                    </div>
+
+                    <div class="timeline">
+                        <h3>Línea de tiempo</h3>
+                        <div id="timelineContainer"></div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="volverBtn" style="margin-top: 25px;">← Nueva consulta</button>
+                </div>
             </div>
+        </div>
 
-            <!-- CHECKBOX ORIGINALIDAD -->
-            <div class="checkbox-group">
-                <input type="checkbox" id="confirmacion-original">
-                <label for="confirmacion-original">Confirmo que este trabajo es original y no ha sido publicado previamente <span class="required">*</span></label>
-            </div>
-            <div class="field-error" id="error-checkbox"></div>
-
-            <!-- BOTONES DE ACCIÓN -->
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary" id="btnEnviar" disabled>📨 Enviar artículo</button>
-                <button type="button" class="btn btn-secondary" id="btnCancelar">🗑️ Cancelar / Limpiar</button>
-            </div>
-
-            <!-- ÁREA DE MENSAJE (ÉXITO / ERROR GENERAL) -->
-            <div id="mensajeGlobal" class="message-area" style="display: none;"></div>
-        </form>
-
-        <!-- DEMO INFO -->
         <div class="demo-note">
-            <p><strong>📌 Simulación:</strong> Los archivos no se guardan realmente, solo referencia. Se genera código ART-2026-XXX y se almacena en localStorage (máx 10 artículos).</p>
+            <p><strong>📌 PWA offline-first:</strong> Funciona sin internet. Los datos se guardan localmente y se sincronizan automáticamente.</p>
+            <p>🟢 Estado: <span id="connectionStatus">Conectado</span></p>
         </div>
     </div>
 
-    <!-- SECCIÓN: ARTÍCULOS ENVIADOS RECIENTEMENTE -->
-    <div class="card recent-list">
-        <h3>📋 Artículos enviados recientemente</h3>
-        <div class="table-responsive" id="recientesContainer">
-            <table id="tablaRecientes">
-                <thead>
-                <tr><th>Código</th><th>Título</th><th>Fecha envío</th><th>Estado</th><th></th></tr>
-                </thead>
-                <tbody id="recientesBody">
-                <!-- se llena con JS -->
-                </tbody>
-            </table>
-        </div>
-        <p style="text-align:right; font-size:13px; color:#888; margin-top:10px;">Los datos persisten en localStorage (últimos 10)</p>
-    </div>
-</div>
+    <script>
+        // ========== VARIABLES GLOBALES ==========
+        const DB_NAME = 'ArticulosDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'articulos';
+        let db = null;
+        let isOnline = navigator.onLine;
 
-<script>
-    (function() {
-        // ---- CONSTANTES Y CLAVES ----
-        const STORAGE_KEY = 'articulos_enviados';
-        const MAX_ARTICLES = 10;
-        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        // ========== ELEMENTOS DOM ==========
+        // Generales
+        const offlineIndicator = document.getElementById('offlineIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
 
-        // ---- ELEMENTOS DEL DOM ----
-        const form = document.getElementById('envioForm');
+        // Tabs
+        const seccionEnvio = document.getElementById('seccionEnvio');
+        const seccionConsulta = document.getElementById('seccionConsulta');
+        const tabs = document.querySelectorAll('.tab');
+
+        // Formulario envío
+        const envioForm = document.getElementById('envioForm');
         const nombre = document.getElementById('autor-nombre');
         const email = document.getElementById('autor-email');
         const institucion = document.getElementById('autor-institucion');
@@ -478,410 +654,453 @@
         const mensajeGlobal = document.getElementById('mensajeGlobal');
         const recientesBody = document.getElementById('recientesBody');
 
-        // Elementos contador de palabras
-        const wordCount = document.getElementById('wordCount');
-        const wordLimitNote = document.getElementById('wordLimitNote');
+        // Portal consulta
+        const loginScreen = document.getElementById('loginScreen');
+        const statusScreen = document.getElementById('statusScreen');
+        const articleCode = document.getElementById('articleCode');
+        const accessKey = document.getElementById('accessKey');
+        const consultarBtn = document.getElementById('consultarBtn');
+        const volverBtn = document.getElementById('volverBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const statusBadge = document.getElementById('statusBadge');
+        const articleTitle = document.getElementById('articleTitle');
+        const progressText = document.getElementById('progressText');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressFill = document.getElementById('progressFill');
+        const timelineContainer = document.getElementById('timelineContainer');
 
-        // Errores por campo
-        const errorNombre = document.getElementById('error-nombre');
-        const errorEmail = document.getElementById('error-email');
-        const errorInstitucion = document.getElementById('error-institucion');
-        const errorTitulo = document.getElementById('error-titulo');
-        const errorArea = document.getElementById('error-area');
-        const errorResumen = document.getElementById('error-resumen');
-        const errorArchivo = document.getElementById('error-archivo');
-        const errorCheckbox = document.getElementById('error-checkbox');
+        // ========== DATOS MOCK PARA CONSULTA ==========
+        const articulosMock = {
+            'ART-2026-001': {
+                claveAcceso: 'autor123',
+                titulo: 'Análisis de sostenibilidad en infraestructura urbana',
+                autor: 'Mtra. Andrea López',
+                estado: 'revision',
+                fechaEnvio: '2026-02-15',
+                revisionesCompletadas: 2,
+                totalRevisiones: 3,
+                timeline: [
+                    { fecha: '2026-02-15', evento: 'Artículo enviado' },
+                    { fecha: '2026-02-18', evento: 'Asignado a revisores' },
+                    { fecha: '2026-02-20', evento: '1ª revisión completada' },
+                    { fecha: '2026-02-22', evento: '2ª revisión completada' },
+                    { fecha: '2026-02-24', evento: 'Esperando 3ª revisión' }
+                ]
+            },
+            'ART-2026-002': {
+                claveAcceso: 'autor456',
+                titulo: 'Optimización de recursos en construcción sustentable',
+                autor: 'Ing. Carlos Ruiz',
+                estado: 'aceptado',
+                fechaEnvio: '2026-01-10',
+                revisionesCompletadas: 3,
+                totalRevisiones: 3,
+                timeline: [
+                    { fecha: '2026-01-10', evento: 'Artículo enviado' },
+                    { fecha: '2026-01-15', evento: 'Asignado a revisores' },
+                    { fecha: '2026-01-25', evento: '1ª revisión completada' },
+                    { fecha: '2026-02-01', evento: '2ª revisión completada' },
+                    { fecha: '2026-02-10', evento: '3ª revisión completada' },
+                    { fecha: '2026-02-20', evento: 'Artículo ACEPTADO' }
+                ]
+            }
+        };
 
-        // ---- FUNCIÓN PARA CONTAR PALABRAS ----
+        // ========== FUNCIONES DE UTILIDAD ==========
+        function cambiarTab(tab) {
+            // Actualizar tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'envio') {
+                tabs[0].classList.add('active');
+                seccionEnvio.classList.add('active');
+                seccionConsulta.classList.remove('active');
+            } else {
+                tabs[1].classList.add('active');
+                seccionConsulta.classList.add('active');
+                seccionEnvio.classList.remove('active');
+            }
+        }
+
+        // ========== INDEXEDDB ==========
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'codigo' });
+                        store.createIndex('fecha', 'fecha', { unique: false });
+                    }
+                };
+            });
+        }
+
+        function guardarArticulo(articulo) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.add(articulo);
+                request.onsuccess = () => resolve(articulo);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function obtenerRecientes() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const index = store.index('fecha');
+                const articulos = [];
+                const request = index.openCursor(null, 'prev');
+                
+                request.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor && articulos.length < 10) {
+                        articulos.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        resolve(articulos);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // ========== FUNCIONES DEL FORMULARIO ==========
         function contarPalabras(texto) {
             if (!texto || texto.trim() === '') return 0;
             return texto.trim().split(/\s+/).length;
         }
 
-        // ---- ACTUALIZAR CONTADOR DE PALABRAS ----
-        function actualizarContadorPalabras() {
-            const texto = resumen.value;
-            const palabras = contarPalabras(texto);
-
-            // Actualizar texto del contador
+        function actualizarContador() {
+            const palabras = contarPalabras(resumen.value);
+            const wordCount = document.getElementById('wordCount');
             wordCount.textContent = `${palabras}/250 palabras`;
-
-            // Cambiar color según el límite
             wordCount.className = 'word-count';
-            if (palabras <= 200) {
-                wordCount.classList.add('safe');
-                wordLimitNote.textContent = '✅ Disponible';
-            } else if (palabras <= 250) {
-                wordCount.classList.add('warning');
-                wordLimitNote.textContent = '⚠️ Cerca del límite';
-            } else {
-                wordCount.classList.add('danger');
-                wordLimitNote.textContent = '❌ Excedido (máx 250)';
-            }
-
+            if (palabras <= 200) wordCount.classList.add('safe');
+            else if (palabras <= 250) wordCount.classList.add('warning');
+            else wordCount.classList.add('danger');
             return palabras;
         }
 
-        // ---- VALIDACIÓN MEJORADA ----
         function validarFormulario() {
-            const palabrasResumen = contarPalabras(resumen.value);
-            const archivoValido = archivo.files.length > 0;
+            const palabras = contarPalabras(resumen.value);
+            let valido = true;
 
-            // Limpiar errores previos
-            limpiarErroresVisuales();
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('invalid', 'valid');
+            });
 
-            const errores = [];
-
-            // Validar nombre
             if (!nombre.value.trim()) {
-                errores.push({ campo: nombre, elemento: errorNombre, mensaje: 'El nombre es obligatorio' });
+                document.getElementById('error-nombre').textContent = 'El nombre es obligatorio';
+                nombre.classList.add('invalid');
+                valido = false;
             } else if (nombre.value.length > 100) {
-                errores.push({ campo: nombre, elemento: errorNombre, mensaje: 'El nombre no puede exceder 100 caracteres' });
+                document.getElementById('error-nombre').textContent = 'Máximo 100 caracteres';
+                nombre.classList.add('invalid');
+                valido = false;
+            } else {
+                nombre.classList.add('valid');
             }
 
-            // Validar email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email.value.trim()) {
-                errores.push({ campo: email, elemento: errorEmail, mensaje: 'El email es obligatorio' });
+                document.getElementById('error-email').textContent = 'El email es obligatorio';
+                email.classList.add('invalid');
+                valido = false;
             } else if (!emailRegex.test(email.value)) {
-                errores.push({ campo: email, elemento: errorEmail, mensaje: 'Correo electrónico inválido' });
+                document.getElementById('error-email').textContent = 'Email inválido';
+                email.classList.add('invalid');
+                valido = false;
+            } else {
+                email.classList.add('valid');
             }
 
-            // Validar título
             if (!titulo.value.trim()) {
-                errores.push({ campo: titulo, elemento: errorTitulo, mensaje: 'El título es obligatorio' });
+                document.getElementById('error-titulo').textContent = 'El título es obligatorio';
+                titulo.classList.add('invalid');
+                valido = false;
             } else if (titulo.value.length > 200) {
-                errores.push({ campo: titulo, elemento: errorTitulo, mensaje: 'El título no puede exceder 200 caracteres' });
+                document.getElementById('error-titulo').textContent = 'Máximo 200 caracteres';
+                titulo.classList.add('invalid');
+                valido = false;
+            } else {
+                titulo.classList.add('valid');
             }
 
-            // Validar área
             if (!area.value) {
-                errores.push({ campo: area, elemento: errorArea, mensaje: 'Seleccione un área temática' });
+                document.getElementById('error-area').textContent = 'Seleccione un área';
+                area.classList.add('invalid');
+                valido = false;
+            } else {
+                area.classList.add('valid');
             }
 
-            // Validar resumen (palabras)
             if (!resumen.value.trim()) {
-                errores.push({ campo: resumen, elemento: errorResumen, mensaje: 'El resumen es obligatorio' });
-            } else if (palabrasResumen > 250) {
-                errores.push({ campo: resumen, elemento: errorResumen, mensaje: `El resumen excede las 250 palabras (tiene ${palabrasResumen})` });
+                document.getElementById('error-resumen').textContent = 'El resumen es obligatorio';
+                resumen.classList.add('invalid');
+                valido = false;
+            } else if (palabras > 250) {
+                document.getElementById('error-resumen').textContent = `Excede 250 palabras (tiene ${palabras})`;
+                resumen.classList.add('invalid');
+                valido = false;
+            } else {
+                resumen.classList.add('valid');
             }
 
-            // Validar archivo
             if (archivo.files.length === 0) {
-                errores.push({ campo: archivo, elemento: errorArchivo, mensaje: 'Debe seleccionar un archivo' });
+                document.getElementById('error-archivo').textContent = 'Seleccione un archivo';
+                archivo.classList.add('invalid');
+                valido = false;
             } else {
                 const file = archivo.files[0];
-
-                // Validar tamaño
-                if (file.size > MAX_FILE_SIZE) {
-                    errores.push({ campo: archivo, elemento: errorArchivo, mensaje: `El archivo excede 10MB (${(file.size / (1024*1024)).toFixed(2)}MB)` });
-                }
-
-                // Validar tipo MIME
-                const tiposPermitidos = [
-                    'application/pdf',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'application/x-tex'
-                ];
-
-                const extensionesPermitidas = ['.pdf', '.doc', '.docx', '.tex'];
-                const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-                if (!tiposPermitidos.includes(file.type) && !extensionesPermitidas.includes(extension)) {
-                    errores.push({ campo: archivo, elemento: errorArchivo, mensaje: 'Tipo de archivo no permitido (use PDF, DOC, DOCX o TEX)' });
+                if (file.size > 10 * 1024 * 1024) {
+                    document.getElementById('error-archivo').textContent = 'Máximo 10MB';
+                    archivo.classList.add('invalid');
+                    valido = false;
+                } else {
+                    archivo.classList.add('valid');
                 }
             }
 
-            // Validar checkbox
             if (!checkbox.checked) {
-                errores.push({ campo: null, elemento: errorCheckbox, mensaje: 'Debe confirmar la originalidad del trabajo' });
+                document.getElementById('error-checkbox').textContent = 'Debe confirmar la originalidad';
+                valido = false;
             }
 
-            // Aplicar clases de error
-            errores.forEach(error => {
-                if (error.campo) {
-                    error.campo.classList.add('invalid');
-                }
-                error.elemento.textContent = error.mensaje;
-            });
+            if (institucion.value) institucion.classList.add('valid');
 
-            // Marcar campos válidos (los que no tienen error)
-            [nombre, email, titulo, area, resumen, archivo].forEach(campo => {
-                if (campo && !campo.classList.contains('invalid') && campo.value) {
-                    campo.classList.add('valid');
-                }
-            });
-
-            // Campo institución (opcional) - nunca marcar como inválido
-            if (institucion.value) {
-                institucion.classList.add('valid');
-            } else {
-                institucion.classList.remove('valid', 'invalid');
-            }
-
-            const esValido = errores.length === 0;
-            btnEnviar.disabled = !esValido;
-            return esValido;
+            btnEnviar.disabled = !valido;
+            return valido;
         }
 
-        // ---- LIMPIAR ERRORES VISUALES ----
-        function limpiarErroresVisuales() {
-            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                el.classList.remove('invalid');
-                // No quitamos 'valid' aquí porque lo reevaluaremos
-            });
-        }
-
-        // ---- LIMPIAR TODAS LAS CLASES DE VALIDACIÓN ----
-        function limpiarTodasLasClases() {
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                el.classList.remove('valid', 'invalid');
-            });
-            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-        }
-
-        // ---- GENERAR CÓDIGO ART-2026-XXX ----
-        function generarCodigoUnico() {
+        function generarCodigo() {
             const random = Math.floor(Math.random() * 900 + 100);
             return `ART-2026-${random}`;
         }
 
-        // ---- GUARDAR EN LOCALSTORAGE CON LÍMITE DE 10 ----
-        function guardarEnStorage(articuloData) {
-            try {
-                let existentes = [];
-                try {
-                    existentes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-                } catch (e) {
-                    existentes = [];
-                }
-
-                // Añadir nuevo al inicio
-                existentes.unshift(articuloData);
-
-                // Limitar a MAX_ARTICLES (10)
-                if (existentes.length > MAX_ARTICLES) {
-                    existentes = existentes.slice(0, MAX_ARTICLES);
-                }
-
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(existentes));
-                return { success: true };
-            } catch (error) {
-                console.error('Error guardando en localStorage:', error);
-                return {
-                    success: false,
-                    error: 'No se pudo guardar el artículo. El almacenamiento local podría estar lleno o corrupto.'
-                };
-            }
-        }
-
-        // ---- MOSTRAR ESTADO DE CARGA ----
-        function setLoadingState(isLoading) {
-            if (isLoading) {
-                btnEnviar.disabled = true;
-                btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
-            } else {
-                btnEnviar.innerHTML = '📨 Enviar artículo';
-                // Re-validar para habilitar si corresponde
-                validarFormulario();
-            }
-        }
-
-        // ---- MOSTRAR MENSAJE GLOBAL ----
-        function mostrarMensaje(tipo, texto) {
-            mensajeGlobal.style.display = 'block';
-            mensajeGlobal.className = `message-area ${tipo === 'exito' ? 'success-message' : 'error-message'}`;
-            mensajeGlobal.innerHTML = texto;
-
-            // Auto-ocultar después de 10 segundos si es éxito
-            if (tipo === 'exito') {
-                setTimeout(() => {
-                    mensajeGlobal.style.display = 'none';
-                }, 10000);
-            }
-        }
-
-        // ---- PROCESAR ENVÍO PRINCIPAL ----
         async function procesarEnvio() {
-            // Mostrar estado de carga
-            setLoadingState(true);
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
 
             try {
-                // Validación final
                 if (!validarFormulario()) {
-                    mostrarMensaje('error', 'Por favor corrija los errores en el formulario');
-                    setLoadingState(false);
+                    btnEnviar.innerHTML = '📨 Enviar artículo';
+                    validarFormulario();
                     return;
                 }
 
-                // Generar código
-                const codigo = generarCodigoUnico();
+                const codigo = generarCodigo();
+                const fecha = new Date().toISOString().split('T')[0];
 
-                // Fecha actual
-                const hoy = new Date();
-                const fechaStr = hoy.toISOString().split('T')[0];
-
-                // Construir objeto del artículo
-                const articuloGuardado = {
+                const articulo = {
                     codigo: codigo,
                     autor: nombre.value.trim(),
                     email: email.value.trim(),
                     institucion: institucion.value.trim() || '(no especificada)',
                     titulo: titulo.value.trim(),
                     area: area.value,
-                    resumen: resumen.value.trim().substring(0, 200) + (resumen.value.length > 200 ? '…' : ''),
-                    fecha: fechaStr,
+                    resumen: resumen.value.trim(),
+                    fecha: fecha,
                     estado: 'Pendiente',
-                    archivo_simulado: archivo.files[0]?.name || 'archivo_seleccionado'
+                    archivo: archivo.files[0]?.name
                 };
 
-                // Intentar guardar con fallback
-                const resultado = guardarEnStorage(articuloGuardado);
+                await guardarArticulo(articulo);
 
-                if (!resultado.success) {
-                    throw new Error(resultado.error);
-                }
+                mensajeGlobal.style.display = 'block';
+                mensajeGlobal.className = 'message-area success-message';
+                mensajeGlobal.innerHTML = `
+                    <strong>✅ Artículo guardado</strong><br>
+                    Código: <code>${codigo}</code><br>
+                    ${!isOnline ? '🔴 Se sincronizará cuando haya conexión' : '🟢 Guardado localmente'}
+                `;
 
-                // Mostrar éxito
-                mostrarMensaje('exito', `
-                    <strong>✅ Artículo recibido.</strong> Su código de seguimiento es: <code style="background:#d0eae5;">${codigo}</code><br>
-                    Guarde este código para consultar el estado.
-                    <div style="margin-top:12px;">
-                        <button class="btn btn-outline" id="guardarTxtBtn" style="padding:8px 15px; font-size:14px;">💾 Guardar código en .txt</button>
-                        <button class="btn btn-outline" id="nuevoEnvioBtn" style="padding:8px 15px; font-size:14px; margin-left:10px;">📝 Enviar otro artículo</button>
-                    </div>
-                `);
-
-                // Eventos para botones del mensaje
-                document.getElementById('guardarTxtBtn')?.addEventListener('click', () => {
-                    const contenido = `Código de seguimiento: ${codigo}\nFecha: ${fechaStr}\nTítulo: ${articuloGuardado.titulo}\n\nGuarde este código para consultar el estado en el portal de autor.`;
-                    const blob = new Blob([contenido], { type: 'text/plain' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `codigo-${codigo}.txt`;
-                    link.click();
-                    URL.revokeObjectURL(link.href);
+                envioForm.reset();
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.classList.remove('valid', 'invalid');
                 });
-
-                document.getElementById('nuevoEnvioBtn')?.addEventListener('click', () => {
-                    resetearFormularioCompleto();
-                });
-
-                // Actualizar tabla
+                actualizarContador();
                 cargarRecientes();
 
+                setTimeout(() => {
+                    mensajeGlobal.style.display = 'none';
+                }, 8000);
+
             } catch (error) {
-                mostrarMensaje('error', `❌ Error: ${error.message}`);
+                mensajeGlobal.style.display = 'block';
+                mensajeGlobal.className = 'message-area error-message';
+                mensajeGlobal.textContent = '❌ Error al guardar';
             } finally {
-                setLoadingState(false);
+                btnEnviar.innerHTML = '📨 Enviar artículo';
+                validarFormulario();
             }
         }
 
-        // ---- RESETEAR FORMULARIO COMPLETO ----
-        function resetearFormularioCompleto() {
-            form.reset();
-            limpiarTodasLasClases();
-            mensajeGlobal.style.display = 'none';
-            actualizarContadorPalabras();
-            validarFormulario();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // ---- CARGAR RECIENTES DESDE STORAGE ----
-        function cargarRecientes() {
-            let articulos = [];
+        async function cargarRecientes() {
             try {
-                articulos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-            } catch (e) {
-                articulos = [];
-            }
+                const articulos = await obtenerRecientes();
+                if (articulos.length === 0) {
+                    recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay artículos</td></tr>';
+                    return;
+                }
 
-            if (articulos.length === 0) {
-                recientesBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#888;">No hay artículos enviados aún</td></tr>`;
+                let html = '';
+                articulos.forEach(art => {
+                    html += `<tr>
+                        <td><code>${art.codigo}</code></td>
+                        <td>${art.titulo.substring(0,30)}${art.titulo.length>30?'…':''}</td>
+                        <td>${art.fecha}</td>
+                        <td><span class="status-badge badge-revision">${art.estado}</span></td>
+                        <td><button class="btn-outline" style="padding:5px 10px;" onclick="cargarConsulta('${art.codigo}')">Ver</button></td>
+                    </tr>`;
+                });
+                recientesBody.innerHTML = html;
+            } catch (error) {
+                recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar</td></tr>';
+            }
+        }
+
+        // ========== FUNCIONES DEL PORTAL DE CONSULTA ==========
+        function cargarConsulta(codigo) {
+            // Cambiar a la pestaña de consulta
+            cambiarTab('consulta');
+            
+            // Simular consulta
+            setTimeout(() => {
+                articleCode.value = codigo;
+                accessKey.value = 'autor123';
+                // Simular click en consultar
+                realizarConsulta();
+            }, 100);
+        }
+
+        function realizarConsulta() {
+            const codigo = articleCode.value.trim();
+            const clave = accessKey.value.trim();
+
+            if (!codigo || !clave) {
+                errorMsg.textContent = 'Ingrese código y clave';
                 return;
             }
 
-            let html = '';
-            articulos.slice(0, MAX_ARTICLES).forEach(art => {
-                html += `<tr>
-                    <td><code>${art.codigo}</code></td>
-                    <td>${art.titulo.substring(0,30)}${art.titulo.length>30?'…':''}</td>
-                    <td>${art.fecha}</td>
-                    <td><span class="status-badge">${art.estado}</span></td>
-                    <td><button class="action-btn" data-codigo="${art.codigo}">Consultar</button></td>
-                </tr>`;
-            });
-            recientesBody.innerHTML = html;
+            const articulo = articulosMock[codigo];
 
-            document.querySelectorAll('.action-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const codigo = e.target.getAttribute('data-codigo');
-                    alert(`🔍 Simulación: redirigir a portal-autor.html con código ${codigo}`);
-                });
-            });
+            if (!articulo || articulo.claveAcceso !== clave) {
+                errorMsg.textContent = 'Código o clave incorrectos';
+                return;
+            }
+
+            errorMsg.textContent = '';
+            mostrarEstado(articulo);
         }
 
-        // ---- EVENT LISTENERS ----
+        function mostrarEstado(articulo) {
+            statusBadge.className = 'status-badge';
+            if (articulo.estado === 'revision') {
+                statusBadge.classList.add('badge-revision');
+                statusBadge.textContent = 'En revisión';
+            } else if (articulo.estado === 'aceptado') {
+                statusBadge.classList.add('badge-aceptado');
+                statusBadge.textContent = 'Aceptado';
+            } else {
+                statusBadge.classList.add('badge-rechazado');
+                statusBadge.textContent = 'Rechazado';
+            }
 
-        // Contador de palabras en tiempo real
+            articleTitle.textContent = `"${articulo.titulo}" - ${articulo.autor}`;
+
+            const porcentaje = Math.round((articulo.revisionesCompletadas / articulo.totalRevisiones) * 100);
+            progressText.textContent = `${articulo.revisionesCompletadas} de ${articulo.totalRevisiones} revisiones completadas`;
+            progressPercentage.textContent = `${porcentaje}%`;
+            progressFill.style.width = `${porcentaje}%`;
+
+            timelineContainer.innerHTML = '';
+            articulo.timeline.forEach(item => {
+                timelineContainer.innerHTML += `
+                    <div class="timeline-item">
+                        <div>
+                            <div class="timeline-date">${item.fecha}</div>
+                            <div class="timeline-text">${item.evento}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            loginScreen.style.display = 'none';
+            statusScreen.style.display = 'block';
+        }
+
+        // ========== EVENT LISTENERS ==========
+        window.cambiarTab = cambiarTab;
+        window.cargarConsulta = cargarConsulta;
+
+        // Formulario
         resumen.addEventListener('input', () => {
-            actualizarContadorPalabras();
+            actualizarContador();
             validarFormulario();
         });
 
-        // Validación en blur (solo después de interacción)
         [nombre, email, titulo, area, archivo, checkbox].forEach(campo => {
             if (campo) {
-                campo.addEventListener('blur', validarFormulario);
+                campo.addEventListener('input', validarFormulario);
                 campo.addEventListener('change', validarFormulario);
             }
         });
 
-        // Eventos de input para validación en tiempo real
-        [nombre, email, titulo].forEach(campo => {
-            campo.addEventListener('input', validarFormulario);
-        });
-
-        // Institución no afecta validación
-        institucion.addEventListener('input', () => {
-            if (institucion.value) {
-                institucion.classList.add('valid');
-                institucion.classList.remove('invalid');
-            } else {
-                institucion.classList.remove('valid', 'invalid');
-            }
-        });
-
-        // Botón enviar
         btnEnviar.addEventListener('click', (e) => {
             e.preventDefault();
             procesarEnvio();
         });
 
-        // Botón cancelar/limpiar
         btnCancelar.addEventListener('click', () => {
-            resetearFormularioCompleto();
+            envioForm.reset();
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('valid', 'invalid');
+            });
+            actualizarContador();
+            validarFormulario();
         });
 
-        // ---- INICIALIZACIÓN ----
-        function inicializar() {
-            // No validar al cargar, solo preparar contador
-            actualizarContadorPalabras();
+        // Portal consulta
+        consultarBtn.addEventListener('click', realizarConsulta);
 
-            // Institución sin clases iniciales
-            institucion.classList.remove('valid', 'invalid');
+        volverBtn.addEventListener('click', () => {
+            loginScreen.style.display = 'block';
+            statusScreen.style.display = 'none';
+            articleCode.value = 'ART-2026-001';
+            accessKey.value = 'autor123';
+        });
 
-            // Cargar recientes
+        // Estado de conexión
+        window.addEventListener('online', () => {
+            isOnline = true;
+            offlineIndicator.classList.remove('show');
+            connectionStatus.textContent = 'Conectado';
+            connectionStatus.style.color = '#38a169';
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            offlineIndicator.classList.add('show');
+            connectionStatus.textContent = 'Offline - trabajando localmente';
+            connectionStatus.style.color = '#ff9800';
+        });
+
+        // ========== INICIALIZACIÓN ==========
+        initDB().then(() => {
             cargarRecientes();
+            actualizarContador();
+        });
 
-            console.log('Formulario inicializado correctamente');
-        }
-
-        inicializar();
-    })();
-</script>
-
+        actualizarContador();
+    </script>
 </body>
 </html>
