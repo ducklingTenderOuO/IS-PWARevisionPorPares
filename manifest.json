@@ -1,0 +1,21 @@
+{
+  "name": "Revista Académica - Envío de Artículos",
+  "short_name": "Envía Artículos",
+  "description": "Plataforma offline-first para envío de artículos académicos",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#764ba2",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

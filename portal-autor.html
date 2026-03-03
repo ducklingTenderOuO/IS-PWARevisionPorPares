@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revista Académica · Envío y Consulta</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <style>
+        /* TU MISMO CSS - no lo cambio */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 15px;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .offline-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff9800;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .offline-indicator.show {
+            display: flex;
+        }
+        
+        .form-row {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #444;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e53e3e;
+            margin-left: 3px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fafafa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background-color: white;
+        }
+
+        input.valid, select.valid, textarea.valid {
+            border-color: #38a169;
+        }
+
+        input.invalid, select.invalid, textarea.invalid {
+            border-color: #e53e3e;
+        }
+
+        .field-error {
+            color: #e53e3e;
+            font-size: 13px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+
+        .word-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .word-count {
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .word-count.safe {
+            color: #38a169;
+        }
+
+        .word-count.warning {
+            color: #f6ad55;
+        }
+
+        .word-count.danger {
+            color: #e53e3e;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 20px 0 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1 1 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-weight: 500;
+            padding: 8px 15px;
+        }
+
+        .btn-outline:hover {
+            background: #667eea10;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message-area {
+            margin: 20px 0 10px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f0f4ff;
+            border-left: 6px solid #667eea;
+            font-size: 15px;
+        }
+
+        .success-message {
+            background: #e6fffa;
+            border-left-color: #2c7a5a;
+            color: #1e4b3c;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border-left-color: #e53e3e;
+            color: #742a2a;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .badge-revision {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-aceptado {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-rechazado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .article-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .timeline {
+            margin-top: 25px;
+        }
+
+        .timeline h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 20px;
+            width: 2px;
+            height: 35px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .timeline-text {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .login-form {
+            transition: all 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: #f7f9fc;
+            color: #444;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+
+        .demo-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 4px solid #667eea;
+        }
+
+        code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 600px) {
+            .card { padding: 20px; }
+            .btn-group { flex-direction: column; }
+            .tabs { flex-direction: column; }
+            .tab { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-indicator" id="offlineIndicator">
+        <span>📴</span> Modo offline
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>📚 Revista Académica</h1>
+            <div class="subtitle">Sistema de envío y seguimiento de artículos</div>
+
+            <!-- Tabs de navegación -->
+            <div class="tabs">
+                <button class="tab active" onclick="cambiarTab('envio')">📤 Enviar artículo</button>
+                <button class="tab" onclick="cambiarTab('consulta')">🔍 Consultar estado</button>
+            </div>
+
+            <!-- SECCIÓN 1: FORMULARIO DE ENVÍO -->
+            <div id="seccionEnvio" class="section active">
+                <form id="envioForm" novalidate>
+                    <div class="form-row">
+                        <label>Nombre completo del autor <span class="required">*</span></label>
+                        <input type="text" id="autor-nombre" placeholder="Ej. María González López" maxlength="100">
+                        <div class="field-error" id="error-nombre"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Correo electrónico <span class="required">*</span></label>
+                        <input type="email" id="autor-email" placeholder="autor@institucion.edu">
+                        <div class="field-error" id="error-email"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Institución / Afiliación</label>
+                        <input type="text" id="autor-institucion" placeholder="Universidad / Centro de investigación">
+                        <div class="field-error" id="error-institucion"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Título del artículo <span class="required">*</span></label>
+                        <input type="text" id="articulo-titulo" placeholder="Título completo del trabajo" maxlength="200">
+                        <div class="field-error" id="error-titulo"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Área temática <span class="required">*</span></label>
+                        <select id="articulo-area">
+                            <option value="" disabled selected>-- Seleccione --</option>
+                            <option value="Ciencias de la Computación">Ciencias de la Computación</option>
+                            <option value="Ingeniería">Ingeniería</option>
+                            <option value="Matemáticas">Matemáticas</option>
+                            <option value="Física">Física</option>
+                            <option value="Biología">Biología</option>
+                            <option value="Ciencias Sociales">Ciencias Sociales</option>
+                        </select>
+                        <div class="field-error" id="error-area"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Resumen <span class="required">*</span></label>
+                        <textarea id="articulo-resumen" rows="4" placeholder="Máximo 250 palabras"></textarea>
+                        <div class="word-counter">
+                            <span class="word-count" id="wordCount">0/250 palabras</span>
+                        </div>
+                        <div class="field-error" id="error-resumen"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Archivo (PDF, DOC, DOCX, TEX) <span class="required">*</span></label>
+                        <input type="file" id="articulo-archivo" accept=".pdf,.tex,.doc,.docx">
+                        <div class="field-error" id="error-archivo"></div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="confirmacion-original">
+                        <label for="confirmacion-original">Confirmo que este trabajo es original y no ha sido publicado previamente <span class="required">*</span></label>
+                    </div>
+                    <div class="field-error" id="error-checkbox"></div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" id="btnEnviar" disabled>📨 Enviar artículo</button>
+                        <button type="button" class="btn btn-secondary" id="btnCancelar">🗑️ Limpiar</button>
+                    </div>
+
+                    <div id="mensajeGlobal" class="message-area" style="display: none;"></div>
+                </form>
+
+                <!-- Tabla de envíos recientes -->
+                <div style="margin-top: 30px;">
+                    <h3>📋 Tus últimos envíos</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Título</th><th>Fecha</th><th>Estado</th><th></th></tr>
+                        </thead>
+                        <tbody id="recientesBody">
+                            <tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: PORTAL DE AUTOR (CONSULTA) -->
+            <div id="seccionConsulta" class="section">
+                <!-- Login -->
+                <div id="loginScreen" class="login-form">
+                    <div class="form-group">
+                        <label>Código del artículo</label>
+                        <input type="text" id="articleCode" placeholder="Ej: ART-2026-001" value="ART-2026-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Clave de acceso</label>
+                        <input type="password" id="accessKey" placeholder="Clave enviada por email" value="autor123">
+                    </div>
+                    <button class="btn btn-primary" id="consultarBtn">Consultar estado</button>
+                    <div id="errorMsg" class="field-error"></div>
+
+                    <div class="demo-info">
+                        <p><strong>🔍 Códigos de prueba:</strong></p>
+                        <p>📌 <code>ART-2026-001</code> / <code>autor123</code> - En revisión</p>
+                        <p>📌 <code>ART-2026-002</code> / <code>autor456</code> - Aceptado</p>
+                    </div>
+                </div>
+
+                <!-- Pantalla de estado (oculta inicialmente) -->
+                <div id="statusScreen" class="status-screen" style="display: none;">
+                    <div class="status-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h2>Estado del artículo</h2>
+                        <span class="status-badge" id="statusBadge">En revisión</span>
+                    </div>
+
+                    <div class="article-title" id="articleTitle">
+                        Título del artículo aquí
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span id="progressText">2 de 3 revisiones</span>
+                            <span id="progressPercentage">66%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 66%"></div>
+                        </div>
+                    </div>
+
+                    <div class="timeline">
+                        <h3>Línea de tiempo</h3>
+                        <div id="timelineContainer"></div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="volverBtn" style="margin-top: 25px;">← Nueva consulta</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-note">
+            <p><strong>📌 PWA offline-first:</strong> Funciona sin internet. Los datos se guardan localmente y se sincronizan automáticamente.</p>
+            <p>🟢 Estado: <span id="connectionStatus">Conectado</span></p>
+        </div>
+    </div>
+
+    <!-- Scripts de sincronización - DEBEN IR PRIMERO -->
+    <script>
+        // ========== SYNC MANAGER SIMPLIFICADO (sin backend) ==========
+        class SyncManager {
+            constructor(db) {
+                this.db = db;
+                this.pendingOps = [];
+                this.loadPending();
+            }
+
+            loadPending() {
+                const saved = localStorage.getItem('pendingSync');
+                this.pendingOps = saved ? JSON.parse(saved) : [];
+            }
+
+            savePending() {
+                localStorage.setItem('pendingSync', JSON.stringify(this.pendingOps));
+            }
+
+            async queueOperation(operation, data) {
+                const op = {
+                    id: Date.now(),
+                    operation,
+                    data,
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.pendingOps.push(op);
+                this.savePending();
+                
+                // Actualizar UI
+                this.updateUI();
+                
+                // Intentar sincronizar si hay conexión
+                if (navigator.onLine) {
+                    this.sync();
+                }
+                
+                return op;
+            }
+
+            async sync() {
+                if (!navigator.onLine || this.pendingOps.length === 0) return;
+                
+                // Disparar evento de inicio
+                window.dispatchEvent(new Event('sync-started'));
+                
+                // Simular sincronización (1 segundo)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Marcar como sincronizados
+                const count = this.pendingOps.length;
+                this.pendingOps = [];
+                this.savePending();
+                
+                // Disparar evento completado
+                window.dispatchEvent(new CustomEvent('sync-completed', {
+                    detail: { count: count }
+                }));
+                
+                this.updateUI();
+            }
+
+            getPendingCount() {
+                return this.pendingOps.length;
+            }
+
+            updateUI() {
+                // Actualizar badge si existe
+                const badge = document.getElementById('pendingBadge');
+                if (badge) {
+                    const count = this.getPendingCount();
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline' : 'none';
+                }
+            }
+        }
+
+        // ========== SYNC UI SIMPLIFICADO ==========
+        class SyncUI {
+            constructor(syncManager) {
+                this.syncManager = syncManager;
+                this.createIndicator();
+                this.bindEvents();
+            }
+
+            createIndicator() {
+                // Crear badge de pendientes
+                const badge = document.createElement('span');
+                badge.id = 'pendingBadge';
+                badge.style.cssText = `
+                    background: #ff9800;
+                    color: white;
+                    padding: 2px 8px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    margin-left: 10px;
+                    display: none;
+                `;
+                
+                // Agregar al lado del título
+                const h1 = document.querySelector('h1');
+                if (h1) {
+                    h1.appendChild(badge);
+                }
+
+                // Crear indicador de sincronización
+                const indicator = document.createElement('div');
+                indicator.id = 'syncIndicator';
+                indicator.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: #667eea;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 50px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    z-index: 1001;
+                    display: none;
+                    align-items: center;
+                    gap: 8px;
+                    cursor: pointer;
+                `;
+                
+                indicator.innerHTML = `
+                    <span>🔄</span>
+                    <span>Sincronizando...</span>
+                `;
+                
+                indicator.onclick = () => this.syncManager.sync();
+                document.body.appendChild(indicator);
+                this.indicator = indicator;
+            }
+
+            bindEvents() {
+                // Eventos de conexión
+                window.addEventListener('online', () => {
+                    this.showMessage('🟢 Conectado', '#38a169');
+                    this.syncManager.sync();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.showMessage('📴 Modo offline', '#ff9800');
+                });
+
+                // Eventos de sincronización
+                window.addEventListener('sync-started', () => {
+                    this.indicator.style.display = 'flex';
+                });
+
+                window.addEventListener('sync-completed', (e) => {
+                    this.indicator.style.display = 'none';
+                    const count = e.detail?.count || 0;
+                    if (count > 0) {
+                        this.showMessage(`✅ ${count} artículos sincronizados`, '#38a169');
+                    }
+                    this.syncManager.updateUI();
+                });
+            }
+
+            showMessage(text, color) {
+                const msg = document.createElement('div');
+                msg.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${color};
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    z-index: 1002;
+                    animation: fadeOut 3s forwards;
+                `;
+                msg.textContent = text;
+                document.body.appendChild(msg);
+                
+                setTimeout(() => msg.remove(), 3000);
+            }
+        }
+    </script>
+
+    <script>
+        // ========== VARIABLES GLOBALES ==========
+        const DB_NAME = 'ArticulosDB';
+        const DB_VERSION = 2; // Incrementar versión para nuevo store
+        const STORE_NAME = 'articulos';
+        const SYNC_STORE = 'sync_queue';
+        let db = null;
+        let isOnline = navigator.onLine;
+        let syncManager = null;
+        let syncUI = null;
+
+        // ========== ELEMENTOS DOM ==========
+        const offlineIndicator = document.getElementById('offlineIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const seccionEnvio = document.getElementById('seccionEnvio');
+        const seccionConsulta = document.getElementById('seccionConsulta');
+        const tabs = document.querySelectorAll('.tab');
+        const envioForm = document.getElementById('envioForm');
+        const nombre = document.getElementById('autor-nombre');
+        const email = document.getElementById('autor-email');
+        const institucion = document.getElementById('autor-institucion');
+        const titulo = document.getElementById('articulo-titulo');
+        const area = document.getElementById('articulo-area');
+        const resumen = document.getElementById('articulo-resumen');
+        const archivo = document.getElementById('articulo-archivo');
+        const checkbox = document.getElementById('confirmacion-original');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const mensajeGlobal = document.getElementById('mensajeGlobal');
+        const recientesBody = document.getElementById('recientesBody');
+        const loginScreen = document.getElementById('loginScreen');
+        const statusScreen = document.getElementById('statusScreen');
+        const articleCode = document.getElementById('articleCode');
+        const accessKey = document.getElementById('accessKey');
+        const consultarBtn = document.getElementById('consultarBtn');
+        const volverBtn = document.getElementById('volverBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const statusBadge = document.getElementById('statusBadge');
+        const articleTitle = document.getElementById('articleTitle');
+        const progressText = document.getElementById('progressText');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const progressFill = document.getElementById('progressFill');
+        const timelineContainer = document.getElementById('timelineContainer');
+
+        // ========== DATOS MOCK PARA CONSULTA ==========
+        const articulosMock = {
+            'ART-2026-001': {
+                claveAcceso: 'autor123',
+                titulo: 'Análisis de sostenibilidad en infraestructura urbana',
+                autor: 'Mtra. Andrea López',
+                estado: 'revision',
+                fechaEnvio: '2026-02-15',
+                revisionesCompletadas: 2,
+                totalRevisiones: 3,
+                timeline: [
+                    { fecha: '2026-02-15', evento: 'Artículo enviado' },
+                    { fecha: '2026-02-18', evento: 'Asignado a revisores' },
+                    { fecha: '2026-02-20', evento: '1ª revisión completada' },
+                    { fecha: '2026-02-22', evento: '2ª revisión completada' },
+                    { fecha: '2026-02-24', evento: 'Esperando 3ª revisión' }
+                ]
+            },
+            'ART-2026-002': {
+                claveAcceso: 'autor456',
+                titulo: 'Optimización de recursos en construcción sustentable',
+                autor: 'Ing. Carlos Ruiz',
+                estado: 'aceptado',
+                fechaEnvio: '2026-01-10',
+                revisionesCompletadas: 3,
+                totalRevisiones: 3,
+                timeline: [
+                    { fecha: '2026-01-10', evento: 'Artículo enviado' },
+                    { fecha: '2026-01-15', evento: 'Asignado a revisores' },
+                    { fecha: '2026-01-25', evento: '1ª revisión completada' },
+                    { fecha: '2026-02-01', evento: '2ª revisión completada' },
+                    { fecha: '2026-02-10', evento: '3ª revisión completada' },
+                    { fecha: '2026-02-20', evento: 'Artículo ACEPTADO' }
+                ]
+            }
+        };
+
+        // ========== FUNCIONES DE UTILIDAD ==========
+        function cambiarTab(tab) {
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'envio') {
+                tabs[0].classList.add('active');
+                seccionEnvio.classList.add('active');
+                seccionConsulta.classList.remove('active');
+            } else {
+                tabs[1].classList.add('active');
+                seccionConsulta.classList.add('active');
+                seccionEnvio.classList.remove('active');
+            }
+        }
+
+        // ========== INDEXEDDB CON NUEVO STORE ==========
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    
+                    // Inicializar sync manager después de DB
+                    syncManager = new SyncManager(db);
+                    syncUI = new SyncUI(syncManager);
+                    
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // Store de artículos
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'codigo' });
+                        store.createIndex('fecha', 'fecha', { unique: false });
+                    }
+                    
+                    // Store para cola de sincronización
+                    if (!db.objectStoreNames.contains(SYNC_STORE)) {
+                        db.createObjectStore(SYNC_STORE, { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+
+        function guardarArticulo(articulo) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.add(articulo);
+                request.onsuccess = () => resolve(articulo);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        function obtenerRecientes() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const index = store.index('fecha');
+                const articulos = [];
+                const request = index.openCursor(null, 'prev');
+                
+                request.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor && articulos.length < 10) {
+                        articulos.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        resolve(articulos);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // ========== FUNCIONES DEL FORMULARIO ==========
+        function contarPalabras(texto) {
+            if (!texto || texto.trim() === '') return 0;
+            return texto.trim().split(/\s+/).length;
+        }
+
+        function actualizarContador() {
+            const palabras = contarPalabras(resumen.value);
+            const wordCount = document.getElementById('wordCount');
+            wordCount.textContent = `${palabras}/250 palabras`;
+            wordCount.className = 'word-count';
+            if (palabras <= 200) wordCount.classList.add('safe');
+            else if (palabras <= 250) wordCount.classList.add('warning');
+            else wordCount.classList.add('danger');
+            return palabras;
+        }
+
+        function validarFormulario() {
+            const palabras = contarPalabras(resumen.value);
+            let valido = true;
+
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('invalid', 'valid');
+            });
+
+            if (!nombre.value.trim()) {
+                document.getElementById('error-nombre').textContent = 'El nombre es obligatorio';
+                nombre.classList.add('invalid');
+                valido = false;
+            } else if (nombre.value.length > 100) {
+                document.getElementById('error-nombre').textContent = 'Máximo 100 caracteres';
+                nombre.classList.add('invalid');
+                valido = false;
+            } else {
+                nombre.classList.add('valid');
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.value.trim()) {
+                document.getElementById('error-email').textContent = 'El email es obligatorio';
+                email.classList.add('invalid');
+                valido = false;
+            } else if (!emailRegex.test(email.value)) {
+                document.getElementById('error-email').textContent = 'Email inválido';
+                email.classList.add('invalid');
+                valido = false;
+            } else {
+                email.classList.add('valid');
+            }
+
+            if (!titulo.value.trim()) {
+                document.getElementById('error-titulo').textContent = 'El título es obligatorio';
+                titulo.classList.add('invalid');
+                valido = false;
+            } else if (titulo.value.length > 200) {
+                document.getElementById('error-titulo').textContent = 'Máximo 200 caracteres';
+                titulo.classList.add('invalid');
+                valido = false;
+            } else {
+                titulo.classList.add('valid');
+            }
+
+            if (!area.value) {
+                document.getElementById('error-area').textContent = 'Seleccione un área';
+                area.classList.add('invalid');
+                valido = false;
+            } else {
+                area.classList.add('valid');
+            }
+
+            if (!resumen.value.trim()) {
+                document.getElementById('error-resumen').textContent = 'El resumen es obligatorio';
+                resumen.classList.add('invalid');
+                valido = false;
+            } else if (palabras > 250) {
+                document.getElementById('error-resumen').textContent = `Excede 250 palabras (tiene ${palabras})`;
+                resumen.classList.add('invalid');
+                valido = false;
+            } else {
+                resumen.classList.add('valid');
+            }
+
+            if (archivo.files.length === 0) {
+                document.getElementById('error-archivo').textContent = 'Seleccione un archivo';
+                archivo.classList.add('invalid');
+                valido = false;
+            } else {
+                const file = archivo.files[0];
+                if (file.size > 10 * 1024 * 1024) {
+                    document.getElementById('error-archivo').textContent = 'Máximo 10MB';
+                    archivo.classList.add('invalid');
+                    valido = false;
+                } else {
+                    archivo.classList.add('valid');
+                }
+            }
+
+            if (!checkbox.checked) {
+                document.getElementById('error-checkbox').textContent = 'Debe confirmar la originalidad';
+                valido = false;
+            }
+
+            if (institucion.value) institucion.classList.add('valid');
+
+            btnEnviar.disabled = !valido;
+            return valido;
+        }
+
+        function generarCodigo() {
+            const random = Math.floor(Math.random() * 900 + 100);
+            return `ART-2026-${random}`;
+        }
+
+        async function procesarEnvio() {
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
+
+            try {
+                if (!validarFormulario()) {
+                    btnEnviar.innerHTML = '📨 Enviar artículo';
+                    validarFormulario();
+                    return;
+                }
+
+                const codigo = generarCodigo();
+                const fecha = new Date().toISOString().split('T')[0];
+
+                const articulo = {
+                    codigo: codigo,
+                    autor: nombre.value.trim(),
+                    email: email.value.trim(),
+                    institucion: institucion.value.trim() || '(no especificada)',
+                    titulo: titulo.value.trim(),
+                    area: area.value,
+                    resumen: resumen.value.trim(),
+                    fecha: fecha,
+                    estado: 'Pendiente',
+                    archivo: archivo.files[0]?.name,
+                    sincronizado: false
+                };
+
+                await guardarArticulo(articulo);
+                
+                // Encolar para sincronización
+                if (syncManager) {
+                    await syncManager.queueOperation('INSERT', articulo);
+                }
+
+                mensajeGlobal.style.display = 'block';
+                mensajeGlobal.className = 'message-area success-message';
+                mensajeGlobal.innerHTML = `
+                    <strong>✅ Artículo guardado</strong><br>
+                    Código: <code>${codigo}</code><br>
+                    ${!isOnline ? '📴 Pendiente de sincronización' : '🔄 En cola para sincronizar'}
+                `;
+
+                envioForm.reset();
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    el.classList.remove('valid', 'invalid');
+                });
+                actualizarContador();
+                cargarRecientes();
+
+                setTimeout(() => {
+                    mensajeGlobal.style.display = 'none';
+                }, 5000);
+
+            } catch (error) {
+                console.error(error);
+                mensajeGlobal.style.display = 'block';
+                mensajeGlobal.className = 'message-area error-message';
+                mensajeGlobal.textContent = '❌ Error al guardar';
+            } finally {
+                btnEnviar.innerHTML = '📨 Enviar artículo';
+                validarFormulario();
+            }
+        }
+
+        async function cargarRecientes() {
+            try {
+                const articulos = await obtenerRecientes();
+                if (articulos.length === 0) {
+                    recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay artículos</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                articulos.forEach(art => {
+                    html += `<tr>
+                        <td><code>${art.codigo}</code></td>
+                        <td>${art.titulo.substring(0,30)}${art.titulo.length>30?'…':''}</td>
+                        <td>${art.fecha}</td>
+                        <td><span class="status-badge badge-revision">${art.estado}</span></td>
+                        <td><button class="btn-outline" style="padding:5px 10px;" onclick="cargarConsulta('${art.codigo}')">Ver</button></td>
+                    </tr>`;
+                });
+                recientesBody.innerHTML = html;
+            } catch (error) {
+                recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar</td></tr>';
+            }
+        }
+
+        // ========== FUNCIONES DEL PORTAL DE CONSULTA ==========
+        function cargarConsulta(codigo) {
+            cambiarTab('consulta');
+            setTimeout(() => {
+                articleCode.value = codigo;
+                accessKey.value = 'autor123';
+                realizarConsulta();
+            }, 100);
+        }
+
+        function realizarConsulta() {
+            const codigo = articleCode.value.trim();
+            const clave = accessKey.value.trim();
+
+            if (!codigo || !clave) {
+                errorMsg.textContent = 'Ingrese código y clave';
+                return;
+            }
+
+            const articulo = articulosMock[codigo];
+
+            if (!articulo || articulo.claveAcceso !== clave) {
+                errorMsg.textContent = 'Código o clave incorrectos';
+                return;
+            }
+
+            errorMsg.textContent = '';
+            mostrarEstado(articulo);
+        }
+
+        function mostrarEstado(articulo) {
+            statusBadge.className = 'status-badge';
+            if (articulo.estado === 'revision') {
+                statusBadge.classList.add('badge-revision');
+                statusBadge.textContent = 'En revisión';
+            } else if (articulo.estado === 'aceptado') {
+                statusBadge.classList.add('badge-aceptado');
+                statusBadge.textContent = 'Aceptado';
+            } else {
+                statusBadge.classList.add('badge-rechazado');
+                statusBadge.textContent = 'Rechazado';
+            }
+
+            articleTitle.textContent = `"${articulo.titulo}" - ${articulo.autor}`;
+
+            const porcentaje = Math.round((articulo.revisionesCompletadas / articulo.totalRevisiones) * 100);
+            progressText.textContent = `${articulo.revisionesCompletadas} de ${articulo.totalRevisiones} revisiones completadas`;
+            progressPercentage.textContent = `${porcentaje}%`;
+            progressFill.style.width = `${porcentaje}%`;
+
+            timelineContainer.innerHTML = '';
+            articulo.timeline.forEach(item => {
+                timelineContainer.innerHTML += `
+                    <div class="timeline-item">
+                        <div>
+                            <div class="timeline-date">${item.fecha}</div>
+                            <div class="timeline-text">${item.evento}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            loginScreen.style.display = 'none';
+            statusScreen.style.display = 'block';
+        }
+
+        // ========== EVENT LISTENERS ==========
+        window.cambiarTab = cambiarTab;
+        window.cargarConsulta = cargarConsulta;
+
+        resumen.addEventListener('input', () => {
+            actualizarContador();
+            validarFormulario();
+        });
+
+        [nombre, email, titulo, area, archivo, checkbox].forEach(campo => {
+            if (campo) {
+                campo.addEventListener('input', validarFormulario);
+                campo.addEventListener('change', validarFormulario);
+            }
+        });
+
+        btnEnviar.addEventListener('click', (e) => {
+            e.preventDefault();
+            procesarEnvio();
+        });
+
+        btnCancelar.addEventListener('click', () => {
+            envioForm.reset();
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.classList.remove('valid', 'invalid');
+            });
+            actualizarContador();
+            validarFormulario();
+        });
+
+        consultarBtn.addEventListener('click', realizarConsulta);
+
+        volverBtn.addEventListener('click', () => {
+            loginScreen.style.display = 'block';
+            statusScreen.style.display = 'none';
+            articleCode.value = 'ART-2026-001';
+            accessKey.value = 'autor123';
+        });
+
+        window.addEventListener('online', () => {
+            isOnline = true;
+            offlineIndicator.classList.remove('show');
+            connectionStatus.textContent = 'Conectado';
+            connectionStatus.style.color = '#38a169';
+            if (syncManager) syncManager.sync();
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            offlineIndicator.classList.add('show');
+            connectionStatus.textContent = 'Offline - trabajando localmente';
+            connectionStatus.style.color = '#ff9800';
+        });
+
+        // ========== INICIALIZACIÓN ==========
+        initDB().then(() => {
+            cargarRecientes();
+            actualizarContador();
+            console.log('✅ App lista con sincronización');
+        }).catch(error => {
+            console.error('Error inicializando:', error);
+        });
+    </script>
+</body>
+</html>
