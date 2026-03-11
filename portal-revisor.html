@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Portal del revisor: evalúa artículos académicos, registra comentarios y envía formularios de revisión, incluso sin conexión a internet.">
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevisionAR · Panel del Revisor — Evaluación de artículos</title>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RevisionAR">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript></noscript>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .deadline-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+    .deadline-ok{background:var(--green-light);color:var(--green);}
+    .deadline-soon{background:var(--gold-light);color:#7a5c00;}
+    .deadline-late{background:var(--red-light);color:var(--red);}
+    .article-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+    .star{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);background:white;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;}
+    .star:hover,.star.on{border-color:var(--gold);background:var(--gold-light);}
+    .star-row{display:flex;gap:6px;}
+    .rating-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+    .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+    .rec-btn{
+      padding:14px;border-radius:var(--radius-sm);border:2px solid var(--border);background:white;
+      cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;text-align:center;
+      font-family:'DM Sans',sans-serif;line-height:1.3;
+    }
+    .rec-btn:hover{border-color:var(--accent);}
+    .rec-btn.selected{border-color:var(--accent);background:var(--accent-light);}
+    .rec-btn .ri{font-size:22px;display:block;margin-bottom:6px;}
+    .section-block{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:10px;}
+    .section-head{
+      padding:12px 16px;background:var(--paper);display:flex;align-items:center;
+      justify-content:space-between;cursor:pointer;border-bottom:1px solid var(--border);
+    }
+    .section-head h4{font-size:14px;font-weight:600;}
+    .section-body{padding:14px 16px;display:none;}
+    .section-body.open{display:block;}
+    .save-bar{
+      display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+      padding:6px 12px;background:var(--paper-dark);border-radius:20px;
+    }
+    .save-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+    .save-dot.pending{background:var(--gold);animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+    .photo-zone{
+      border:2px dashed var(--border);border-radius:var(--radius-sm);padding:20px;
+      text-align:center;cursor:pointer;transition:border-color 0.2s;background:white;
+    }
+    .photo-zone:hover{border-color:var(--accent);}
+    .photo-zone input{display:none;}
+    .photo-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .photo-thumb{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+  </style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://revisionAR.app/portal-revisor.html">
+  <meta property="og:title" content="Panel del Revisor — RevisionAR">
+  <meta property="og:description" content="Evalúa artículos académicos con formulario estructurado, disponible offline.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:locale" content="es_MX">
+  <meta name="author" content="RevisionAR">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Panel del Revisor — RevisionAR">
+  <meta name="twitter:description" content="Evalúa artículos académicos con formulario estructurado, disponible offline.">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Ir al contenido principal</a>
+<div class="offline-bar" id="offlineBar" role="alert" aria-live="assertive">📴 Sin conexión — comentarios guardados automáticamente</div>
+
+<div class="app-shell">
+  <header class="topbar" role="banner">
+    <a href="index.html" class="topbar-brand" aria-label="RevisionAR — inicio">📚 RevisionAR</a>
+    <span class="topbar-role">Revisor</span>
+    <div class="topbar-spacer"></div>
+    <div class="save-bar" id="saveBar">
+      <div class="save-dot" id="saveDot"></div>
+      <span id="saveText">Guardado</span>
+    </div>
+    <div class="topbar-user" style="margin-left:12px;">
+      <div class="avatar" style="background:var(--teal);">SM</div>
+    </div>
+  </header>
+
+  <main class="main-content" id="main-content">
+    <h1 class="visually-hidden">Panel del Revisor — RevisionAR</h1>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">📋</div><div class="stat-number" aria-live="polite" id="statAsig">—</div><div class="stat-label">Asignadas</div></div>
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">⚡</div><div class="stat-number" aria-live="polite" id="statProg">—</div><div class="stat-label">En progreso</div></div>
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">✅</div><div class="stat-number" aria-live="polite" id="statComp">—</div><div class="stat-label">Completadas</div></div>
+    </div>
+
+    <nav class="tabs-nav" role="tablist" aria-label="Secciones del panel">
+      <button class="tab-btn active" onclick="showTab('mis-articulos',this)">Mis artículos</button>
+      <button class="tab-btn" id="tabFormBtn" onclick="showTab('formulario',this)">Formulario de revisión</button>
+    </nav>
+
+    <!-- Mis artículos -->
+    <div class="tab-panel active" id="tab-mis-articulos">
+      <div id="articulosLista"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div></div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="tab-panel" id="tab-formulario">
+      <div class="card" id="contextoCard">
+        <p style="font-size:13px;color:var(--muted);">Selecciona un artículo de "Mis artículos" y haz clic en <strong>Iniciar revisión</strong>.</p>
+      </div>
+      <div id="formContainer" style="display:none;">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title" id="formTitulo"></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;" id="formMeta"></div>
+          <button class="btn btn-sm btn-ghost" style="margin-top:12px;" onclick="showToast('📥 Guardado para lectura offline','success')">📥 Descargar para leer offline</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><h2 class="card-title">Formulario de revisión</h2><div class="card-subtitle">Cambios guardados automáticamente</div></div>
+          </div>
+
+          <!-- Recomendación -->
+          <div class="form-group">
+            <h3 class="form-label" style="font-size:14px;">Recomendación final <span class="req">*</span></div>
+            <div class="rec-grid">
+              <div class="rec-btn" data-rec="aceptar" onclick="selectRec(this)"><span class="ri">✅</span>Aceptar sin cambios</div>
+              <div class="rec-btn" data-rec="aceptar-cambios" onclick="selectRec(this)"><span class="ri">📝</span>Aceptar con cambios menores</div>
+              <div class="rec-btn" data-rec="revision-mayor" onclick="selectRec(this)"><span class="ri">🔄</span>Revisión mayor requerida</div>
+              <div class="rec-btn" data-rec="rechazar" onclick="selectRec(this)"><span class="ri">❌</span>Rechazar</div>
+            </div>
+          </div>
+
+          <!-- Puntajes -->
+          <div class="form-group">
+            <div class="form-label">Evaluación por criterios (1–5)</div>
+            <div class="rating-grid">
+              <div class="form-group"><label class="form-label">Originalidad</label><div class="star-row" id="r-originalidad" data-key="originalidad"></div></div>
+              <div class="form-group"><label class="form-label">Metodología</label><div class="star-row" id="r-metodologia" data-key="metodologia"></div></div>
+              <div class="form-group"><label class="form-label">Claridad</label><div class="star-row" id="r-claridad" data-key="claridad"></div></div>
+              <div class="form-group"><label class="form-label">Relevancia</label><div class="star-row" id="r-relevancia" data-key="relevancia"></div></div>
+            </div>
+          </div>
+
+          <!-- Secciones -->
+          <div class="form-group">
+            <div class="form-label">Comentarios por sección</div>
+            <div id="seccionesContainer"></div>
+          </div>
+
+          <!-- Comentarios generales -->
+          <div class="form-group">
+            <label class="form-label">Comentarios generales al autor</label>
+            <textarea class="form-control" id="comentariosGeneral" rows="5" placeholder="El autor leerá directamente estos comentarios." oninput="autoSave()"></textarea>
+          </div>
+
+          <!-- Notas privadas -->
+          <div class="form-group">
+            <label class="form-label" for="notasPriv">Notas privadas para el editor <span style="font-size:12px;color:var(--muted);">(el autor no las ve)</span></label>
+            <textarea class="form-control" id="notasPrivadas" rows="3" placeholder="Observaciones confidenciales..." oninput="autoSave()"></textarea>
+          </div>
+
+          <!-- Fotos -->
+          <div class="form-group">
+            <label class="form-label" for="photoIn">📸 Fotos de anotaciones manuscritas</label>
+            <div class="photo-zone" onclick="document.getElementById('photoInput').click()">
+              <input type="file" id="photoInput" accept="image/*" multiple capture="environment" onchange="handlePhotos(this)">
+              <div style="font-size:24px;margin-bottom:8px;">📷</div>
+              <div style="font-size:14px;font-weight:600;">Toca para capturar o subir fotos</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px;">Máx. 5 imágenes</div>
+            </div>
+            <div class="photo-row" id="photoPreview"></div>
+          </div>
+
+          <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="guardarBorrador()">💾 Guardar borrador</button>
+            <button class="btn btn-primary" onclick="enviarRevision()">Enviar revisión completa →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="js/db.js"></script>
+<script>
+  const { articulos, revisiones, syncQueue, seedDemoData } = RevDB;
+  const REVISOR_EMAIL = 'sofia@ingenieria.unam.mx';
+  let revisionActiva = null;
+  let articuloActivo = null;
+  const puntajes = {};
+  let recomendacion = null;
+  let saveTimer = null;
+
+  async function init() {
+    await seedDemoData();
+    await renderMisArticulos();
+    initStars();
+    initSecciones();
+    updateOnlineStatus();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  async function renderMisArticulos() {
+    const revs = await revisiones.porRevisor(REVISOR_EMAIL);
+    document.getElementById('statAsig').textContent = revs.length;
+    document.getElementById('statProg').textContent = revs.filter(r=>r.estado==='en_progreso'||r.estado==='pendiente').length;
+    document.getElementById('statComp').textContent = revs.filter(r=>r.estado==='completada').length;
+
+    if (revs.length === 0) {
+      document.getElementById('articulosLista').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">📭</div><p>No tienes artículos asignados aún.</p></div>';
+      return;
+    }
+
+    const htmlParts = [];
+    for (const rev of revs) {
+      const art = await articulos.obtener(rev.codigoArticulo);
+      if (!art) continue;
+      const hoy   = new Date();
+      const limite = new Date(rev.fechaLimite);
+      const dias  = Math.ceil((limite - hoy) / 86400000);
+      const dClass = dias > 7 ? 'deadline-ok' : dias >= 0 ? 'deadline-soon' : 'deadline-late';
+      const dLabel = dias < 0 ? `Vencido hace ${Math.abs(dias)} días` : dias === 0 ? 'Vence hoy' : `${dias} días restantes`;
+      const badge  = rev.estado === 'completada'
+        ? '<span class="badge badge-completada">✅ Completada</span>'
+        : '<span class="badge badge-revision">🔍 Pendiente</span>';
+
+      htmlParts.push(`
+        <div class="article-card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:15px;line-height:1.4;margin-bottom:4px;">${art.titulo}</div>
+              <div style="font-size:13px;color:var(--muted);">${art.autorNombre} · ${art.area}</div>
+            </div>
+            ${badge}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <span class="deadline-chip ${dClass}">⏰ ${dLabel}</span>
+            <button class="btn btn-sm btn-primary" onclick="abrirFormulario('${art.codigo}',${rev.id})">
+              ${rev.estado==='completada'?'Ver revisión':'Iniciar revisión →'}
+            </button>
+          </div>
+        </div>
+      `);
+    }
+    document.getElementById('articulosLista').innerHTML = htmlParts.join('');
+  }
+
+  async function abrirFormulario(codigo, revId) {
+    articuloActivo = await articulos.obtener(codigo);
+    const revs = await revisiones.porArticulo(codigo);
+    revisionActiva = revs.find(r => r.id === revId) || revs.find(r => r.revisorEmail === REVISOR_EMAIL);
+
+    // Cargar datos guardados en el formulario
+    if (revisionActiva?.puntajes) { Object.assign(puntajes, revisionActiva.puntajes); refreshStars(); }
+    if (revisionActiva?.recomendacion) {
+      recomendacion = revisionActiva.recomendacion;
+      document.querySelectorAll('.rec-btn').forEach(b => b.classList.toggle('selected', b.dataset.rec === recomendacion));
+    }
+    if (revisionActiva?.comentariosGeneral) document.getElementById('comentariosGeneral').value = revisionActiva.comentariosGeneral;
+    if (revisionActiva?.notasPrivadas)      document.getElementById('notasPrivadas').value      = revisionActiva.notasPrivadas || '';
+
+    document.getElementById('formTitulo').textContent = articuloActivo.titulo;
+    document.getElementById('formMeta').textContent   = `${articuloActivo.autorNombre} · ${articuloActivo.area}`;
+    document.getElementById('formContainer').style.display = 'block';
+
+    showTab('formulario', document.getElementById('tabFormBtn'));
+  }
+
+  /* --- Stars --- */
+  function initStars() {
+    ['originalidad','metodologia','claridad','relevancia'].forEach(key => {
+      const c = document.getElementById('r-'+key);
+      for (let i=1; i<=5; i++) {
+        const s = document.createElement('div');
+        s.className = 'star'; s.textContent = i; s.dataset.val = i;
+        s.addEventListener('click', () => { puntajes[key]=i; refreshStars(); autoSave(); });
+        c.appendChild(s);
+      }
+    });
+  }
+
+  function refreshStars() {
+    ['originalidad','metodologia','claridad','relevancia'].forEach(key => {
+      document.querySelectorAll(`#r-${key} .star`).forEach(s =>
+        s.classList.toggle('on', parseInt(s.dataset.val) <= (puntajes[key]||0)));
+    });
+  }
+
+  /* --- Secciones --- */
+  function initSecciones() {
+    const secs = ['Introducción','Marco teórico','Metodología','Resultados','Discusión','Conclusiones'];
+    document.getElementById('seccionesContainer').innerHTML = secs.map((sec,i) => `
+      <div class="section-block">
+        <div class="section-head" onclick="toggleSec(${i})">
+          <h4>${sec}</h4><span id="st-${i}">▶</span>
+        </div>
+        <div class="section-body" id="sb-${i}">
+          <textarea class="form-control" id="sec-${i}" rows="3"
+            placeholder="Comentarios sobre ${sec.toLowerCase()}…" oninput="autoSave()"></textarea>
+        </div>
+      </div>`).join('');
+  }
+
+  function toggleSec(i) {
+    const b = document.getElementById('sb-'+i);
+    const open = b.classList.toggle('open');
+    document.getElementById('st-'+i).textContent = open ? '▼' : '▶';
+  }
+
+  /* --- Recomendación --- */
+  function selectRec(el) {
+    document.querySelectorAll('.rec-btn').forEach(b=>b.classList.remove('selected'));
+    el.classList.add('selected');
+    recomendacion = el.dataset.rec;
+    autoSave();
+  }
+
+  /* --- Fotos --- */
+  function handlePhotos(input) {
+    const preview = document.getElementById('photoPreview');
+    Array.from(input.files).slice(0,5).forEach(file => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.className = 'photo-thumb';
+      preview.appendChild(img);
+    });
+    showToast('📸 Fotos guardadas localmente','success');
+  }
+
+  /* --- Auto-save --- */
+  function autoSave() {
+    document.getElementById('saveDot').classList.add('pending');
+    document.getElementById('saveText').textContent = 'Guardando…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      await guardarBorrador(true);
+      document.getElementById('saveDot').classList.remove('pending');
+      document.getElementById('saveText').textContent = 'Guardado automático';
+    }, 1200);
+  }
+
+  async function guardarBorrador(silencioso=false) {
+    if (!revisionActiva) return;
+    revisionActiva.puntajes           = { ...puntajes };
+    revisionActiva.recomendacion      = recomendacion;
+    revisionActiva.comentariosGeneral = document.getElementById('comentariosGeneral').value;
+    revisionActiva.notasPrivadas      = document.getElementById('notasPrivadas')?.value || '';
+    revisionActiva.estado             = revisionActiva.estado === 'completada' ? 'completada' : 'en_progreso';
+    revisionActiva.sincronizado       = navigator.onLine;
+    await revisiones.guardar(revisionActiva);
+    if (!navigator.onLine) await syncQueue.encolar('UPDATE_REVISION', revisionActiva);
+    if (!silencioso) showToast('💾 Borrador guardado','success');
+  }
+
+  async function enviarRevision() {
+    if (!recomendacion) { showToast('Selecciona una recomendación primero','error'); return; }
+    if (!revisionActiva) { showToast('No hay revisión activa','error'); return; }
+    revisionActiva.estado = 'completada';
+    revisionActiva.fechaCompletada = new Date().toISOString();
+    await guardarBorrador(true);
+    showToast('✅ Revisión enviada correctamente','success');
+    await renderMisArticulos();
+    showTab('mis-articulos', document.querySelector('.tab-btn'));
+  }
+
+  /* --- Helpers --- */
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
+
+  function updateOnlineStatus() {
+    document.getElementById('offlineBar').classList.toggle('show', !navigator.onLine);
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+
+  window.showTab = showTab; window.abrirFormulario = abrirFormulario;
+  window.selectRec = selectRec; window.toggleSec = toggleSec;
+  window.guardarBorrador = guardarBorrador; window.enviarRevision = enviarRevision;
+  window.handlePhotos = handlePhotos; window.showToast = showToast;
+
+  init();
+</script>
+</body>
+</html>

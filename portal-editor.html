@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="Panel de control del editor: gestiona artículos académicos, asigna revisores y hace seguimiento del proceso de revisión por pares.">
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevisionAR · Panel del Editor — Gestión editorial</title>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RevisionAR">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript></noscript>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .article-row-title{font-weight:500;font-size:14px;}
+    .article-row-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+    .progress-mini{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+    .progress-mini .bar{flex:1;height:6px;background:var(--paper-dark);border-radius:4px;overflow:hidden;}
+    .progress-mini .fill{height:100%;border-radius:4px;background:var(--accent);}
+    .filter-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+    .filter-btn{
+      padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);
+      background:white;font-size:13px;font-weight:500;cursor:pointer;
+      transition:all 0.2s;font-family:'DM Sans',sans-serif;
+    }
+    .filter-btn.active{background:var(--ink);color:white;border-color:var(--ink);}
+    .filter-btn:hover:not(.active){border-color:var(--accent);color:var(--accent);}
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:400;
+      display:flex;align-items:center;justify-content:center;padding:24px;
+      opacity:0;pointer-events:none;transition:opacity 0.2s;
+    }
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{
+      background:var(--card);border-radius:var(--radius-lg);width:100%;max-width:540px;
+      padding:32px;box-shadow:var(--shadow-lg);
+      transform:translateY(20px);transition:transform 0.25s;
+    }
+    .modal-overlay.open .modal{transform:translateY(0);}
+    .modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+    .modal-title{font-family:'DM Serif Display',serif;font-size:20px;}
+    .btn-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);line-height:1;}
+    .reviewer-card{
+      display:flex;align-items:center;gap:14px;padding:14px 16px;
+      border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      cursor:pointer;transition:all 0.2s;background:white;margin-bottom:8px;
+    }
+    .reviewer-card:hover{border-color:var(--accent);background:var(--accent-light);}
+    .reviewer-card.selected{border-color:var(--accent);background:var(--accent-light);}
+    .load-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;}
+    .load-dot.medium{background:var(--gold);}
+    .load-dot.high{background:var(--red);}
+  </style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://revisionAR.app/portal-editor.html">
+  <meta property="og:title" content="Panel del Editor — RevisionAR">
+  <meta property="og:description" content="Gestiona artículos académicos, asigna revisores y hace seguimiento del proceso editorial.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:locale" content="es_MX">
+  <meta name="author" content="RevisionAR">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Panel del Editor — RevisionAR">
+  <meta name="twitter:description" content="Gestiona artículos académicos, asigna revisores y hace seguimiento del proceso editorial.">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Ir al contenido principal</a>
+<div class="offline-bar" id="offlineBar" role="alert" aria-live="assertive">📴 Sin conexión — los cambios se guardarán localmente</div>
+
+<div class="app-shell">
+  <header class="topbar" role="banner">
+    <a href="index.html" class="topbar-brand" aria-label="RevisionAR — inicio">📚 RevisionAR</a>
+    <span class="topbar-role">Editor</span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span id="statusConn" style="font-size:12px;color:#4ade80;">● En línea</span>
+      <div class="avatar">CF</div>
+    </div>
+  </header>
+
+  <main class="main-content" id="main-content">
+    <h1 class="visually-hidden">Panel del Editor — RevisionAR</h1>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">📄</div><div class="stat-number" aria-live="polite" id="statTotal">—</div><div class="stat-label">Artículos</div></div>
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">🔍</div><div class="stat-number" aria-live="polite" id="statRevision">—</div><div class="stat-label">En revisión</div></div>
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">⏳</div><div class="stat-number" aria-live="polite" id="statPendiente">—</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat-card"><div class="stat-icon" aria-hidden="true">✅</div><div class="stat-number" aria-live="polite" id="statAceptado">—</div><div class="stat-label">Aceptados</div></div>
+    </div>
+
+    <nav class="tabs-nav" role="tablist" aria-label="Secciones del panel">
+      <button class="tab-btn active" onclick="showTab('articulos',this)">Todos los artículos</button>
+      <button class="tab-btn" onclick="showTab('revisores',this)">Revisores</button>
+      <button class="tab-btn" onclick="showTab('actividad',this)">Actividad reciente</button>
+    </nav>
+
+    <!-- Tab: Artículos -->
+    <div class="tab-panel active" id="tab-articulos">
+      <div class="card">
+        <div class="card-header">
+          <div><h2 class="card-title">Artículos enviados</h2><div class="card-subtitle">Gestiona asignación y seguimiento</div></div>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filtrar('todos',this)" aria-pressed="true">Todos</button>
+          <button class="filter-btn" onclick="filtrar('pendiente',this)" aria-pressed="false">Pendientes</button>
+          <button class="filter-btn" onclick="filtrar('revision',this)" aria-pressed="false">En revisión</button>
+          <button class="filter-btn" onclick="filtrar('aceptado',this)" aria-pressed="false">Aceptados</button>
+          <button class="filter-btn" onclick="filtrar('rechazado',this)" aria-pressed="false">Rechazados</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Artículo</th><th>Estado</th><th>Progreso</th><th>Acciones</th></tr></thead>
+            <tbody id="articulosBody"><tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted);">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Revisores -->
+    <div class="tab-panel" id="tab-revisores">
+      <div class="card">
+        <div class="card-header"><div><h2 class="card-title">Panel de revisores</h2><div class="card-subtitle">Carga de trabajo y disponibilidad</div></div></div>
+        <div id="revisoresGrid" style="display:grid;gap:12px;"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- Tab: Actividad -->
+    <div class="tab-panel" id="tab-actividad">
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Actividad reciente</h2></div>
+        <div class="timeline">
+          <div class="timeline-item done">
+            <div class="timeline-date">9 Mar 2026 · 10:42</div>
+            <div class="timeline-event">Sofía Mendoza completó revisión de ART-2026-001</div>
+          </div>
+          <div class="timeline-item done">
+            <div class="timeline-date">3 Feb 2026 · 09:00</div>
+            <div class="timeline-event">Nuevo artículo recibido: ART-2026-002</div>
+            <div class="timeline-note">Dr. Roberto Salinas · Tec de Monterrey</div>
+          </div>
+          <div class="timeline-item done">
+            <div class="timeline-date">18 Ene 2026 · 14:30</div>
+            <div class="timeline-event">Revisores asignados a ART-2026-001</div>
+            <div class="timeline-note">Sofía Mendoza · José Hernández</div>
+          </div>
+          <div class="timeline-item done">
+            <div class="timeline-date">15 Ene 2026 · 10:00</div>
+            <div class="timeline-event">Nuevo artículo recibido: ART-2026-001</div>
+            <div class="timeline-note">Mtra. Andrea López · UNAM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Asignar Revisores -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><h2 class="modal-title">Asignar revisores</h2><div id="modalArticuloInfo" style="font-size:13px;color:var(--muted);margin-top:4px;"></div></div>
+      <button class="btn-close" onclick="closeModal()" aria-label="Cerrar modal" aria-label="Cerrar">×</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Selecciona hasta 3 revisores. Se priorizan los de menor carga.</p>
+    <div id="revisoresLista"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarAsignacion()">Confirmar asignación</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">Detalle del artículo</h2>
+      <button class="btn-close" onclick="document.getElementById('detailModal').classList.remove('open')" aria-label="Cerrar detalle" aria-label="Cerrar">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="js/db.js"></script>
+<script>
+  const { articulos, revisiones, revisores, seedDemoData } = RevDB;
+  let filtroActivo = 'todos';
+  let articuloSeleccionado = null;
+  let revisoresSeleccionados = [];
+
+  const badgeMap = {
+    pendiente: '<span class="badge badge-pendiente">⏳ Pendiente</span>',
+    revision:  '<span class="badge badge-revision">🔍 En revisión</span>',
+    aceptado:  '<span class="badge badge-aceptado">✅ Aceptado</span>',
+    rechazado: '<span class="badge badge-rechazado">❌ Rechazado</span>',
+  };
+
+  async function init() {
+    await seedDemoData();
+    await cargarStats();
+    await renderArticulos();
+    await renderRevisores();
+    updateOnlineStatus();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  async function cargarStats() {
+    const todos = await articulos.listar();
+    document.getElementById('statTotal').textContent    = todos.length;
+    document.getElementById('statRevision').textContent = todos.filter(a=>a.estado==='revision').length;
+    document.getElementById('statPendiente').textContent= todos.filter(a=>a.estado==='pendiente').length;
+    document.getElementById('statAceptado').textContent = todos.filter(a=>a.estado==='aceptado').length;
+  }
+
+  async function renderArticulos() {
+    const todos = await articulos.listar();
+    const lista = filtroActivo === 'todos' ? todos : todos.filter(a=>a.estado===filtroActivo);
+    if (lista.length === 0) {
+      document.getElementById('articulosBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted);">No hay artículos en esta categoría</td></tr>';
+      return;
+    }
+    document.getElementById('articulosBody').innerHTML = lista.map(art => {
+      const pct = art.revisiones > 0 ? Math.round(((art.revisionesCompletas||0)/art.revisiones)*100) : 0;
+      return `<tr>
+        <td><code style="font-size:12px;background:var(--paper-dark);padding:3px 7px;border-radius:5px;">${art.codigo}</code></td>
+        <td>
+          <div class="article-row-title">${art.titulo.substring(0,48)}${art.titulo.length>48?'…':''}</div>
+          <div class="article-row-meta">${art.autorNombre} · ${art.area}</div>
+        </td>
+        <td>${badgeMap[art.estado]||''}</td>
+        <td>
+          <div class="progress-mini">
+            <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+            <span>${art.revisionesCompletas||0}/${art.revisiones||0}</span>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-secondary" onclick="verDetalle('${art.codigo}')">Ver</button>
+            ${art.estado==='pendiente'?`<button class="btn btn-sm btn-primary" onclick="abrirAsignar('${art.codigo}')">Asignar</button>`:''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function renderRevisores() {
+    const lista = await revisores.listar();
+    const loadLabel = n => n===0?'Libre':n<=1?'Carga baja':n<=2?'Carga media':'Carga alta';
+    const loadClass = n => n<=1?'':n<=2?'medium':'high';
+    document.getElementById('revisoresGrid').innerHTML = lista.map(r=>`
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:white;">
+        <div class="avatar" style="background:var(--teal);width:40px;height:40px;font-size:16px;">${r.nombre.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${r.nombre}</div>
+          <div style="font-size:12px;color:var(--muted);">${r.especialidad}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+            <div class="load-dot ${loadClass(r.carga)}"></div>
+            <span style="font-size:12px;color:var(--muted);">${loadLabel(r.carga)}</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">${r.carga} asignaciones activas</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function verDetalle(codigo) {
+    const art  = await articulos.obtener(codigo);
+    const revs = await revisiones.porArticulo(codigo);
+    document.getElementById('detailContent').innerHTML = `
+      <div style="margin-bottom:16px;">${badgeMap[art.estado]||''}</div>
+      <h3 style="font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:6px;line-height:1.3;">${art.titulo}</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">${art.autorNombre} · ${art.institucion}</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;font-size:13px;">
+        <div><strong>Área:</strong> ${art.area}</div>
+        <div><strong>Enviado:</strong> ${art.fechaEnvio}</div>
+        <div><strong>Límite revisión:</strong> ${art.fechaLimite}</div>
+        <div><strong>Archivo:</strong> ${art.archivo||'—'}</div>
+      </div>
+      <div style="background:var(--paper);border-radius:8px;padding:14px;margin-bottom:18px;font-size:13px;line-height:1.6;">
+        <strong style="display:block;margin-bottom:4px;">Resumen:</strong>${art.resumen}
+      </div>
+      <strong style="font-size:13px;display:block;margin-bottom:10px;">Revisores (${revs.length})</strong>
+      ${revs.length===0?'<p style="font-size:13px;color:var(--muted);">Sin revisores asignados.</p>':
+        revs.map(r=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+            <div>
+              <div style="font-size:14px;font-weight:500;">${r.revisorNombre}</div>
+              <div style="font-size:12px;color:var(--muted);">Límite: ${r.fechaLimite}</div>
+            </div>
+            ${r.estado==='completada'?'<span class="badge badge-aceptado">Completada</span>':'<span class="badge badge-revision">En progreso</span>'}
+          </div>`).join('')}
+    `;
+    document.getElementById('detailModal').classList.add('open');
+  }
+
+  async function abrirAsignar(codigo) {
+    articuloSeleccionado = codigo;
+    revisoresSeleccionados = [];
+    const art  = await articulos.obtener(codigo);
+    const lista = await revisores.listar();
+    document.getElementById('modalArticuloInfo').textContent = art ? art.titulo.substring(0,55)+'…' : codigo;
+    document.getElementById('revisoresLista').innerHTML = lista.map(r=>{
+      const lc = r.carga<=1?'':r.carga<=2?'medium':'high';
+      return `<div class="reviewer-card" data-email="${r.email}" onclick="toggleRevisor(this,'${r.email}')">
+        <div class="load-dot ${lc}"></div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${r.nombre}</div>
+          <div style="font-size:12px;color:var(--muted);">${r.especialidad} · ${r.carga} activas</div>
+        </div>
+        <span class="check-icon" style="font-size:18px;opacity:0;">✓</span>
+      </div>`;
+    }).join('');
+    document.getElementById('assignModal').classList.add('open');
+  }
+
+  function toggleRevisor(el, email) {
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      el.querySelector('.check-icon').style.opacity='0';
+      revisoresSeleccionados = revisoresSeleccionados.filter(e=>e!==email);
+    } else {
+      if (revisoresSeleccionados.length >= 3) { showToast('Máximo 3 revisores','error'); return; }
+      el.classList.add('selected');
+      el.querySelector('.check-icon').style.opacity='1';
+      revisoresSeleccionados.push(email);
+    }
+  }
+
+  async function confirmarAsignacion() {
+    if (revisoresSeleccionados.length === 0) { showToast('Selecciona al menos un revisor','error'); return; }
+    const art = await articulos.obtener(articuloSeleccionado);
+    art.estado = 'revision';
+    art.revisiones = revisoresSeleccionados.length;
+    art.revisionesCompletas = 0;
+    await articulos.guardar(art);
+    for (const email of revisoresSeleccionados) {
+      const rev = await revisores.obtener(email);
+      await revisiones.guardar({
+        codigoArticulo: articuloSeleccionado, revisorEmail: email,
+        revisorNombre: rev?.nombre || email, estado: 'pendiente',
+        fechaAsignacion: new Date().toISOString().split('T')[0],
+        fechaLimite: art.fechaLimite, recomendacion: null, puntajes: {}, comentariosGeneral: '',
+      });
+      if (rev) { rev.carga = (rev.carga||0)+1; await revisores.guardar(rev); }
+    }
+    closeModal();
+    await cargarStats(); await renderArticulos(); await renderRevisores();
+    showToast(`✅ ${revisoresSeleccionados.length} revisor(es) asignado(s)`, 'success');
+  }
+
+  function closeModal() { document.getElementById('assignModal').classList.remove('open'); }
+
+  function filtrar(estado, btn) {
+    filtroActivo = estado;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderArticulos();
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(()=>t.classList.remove('show'), 3500);
+  }
+
+  function updateOnlineStatus() {
+    const online = navigator.onLine;
+    document.getElementById('offlineBar').classList.toggle('show', !online);
+    const s = document.getElementById('statusConn');
+    s.textContent = online ? '● En línea' : '● Offline';
+    s.style.color  = online ? '#4ade80' : '#fbbf24';
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+
+  // Exponer para onclick en HTML
+  window.filtrar = filtrar; window.showTab = showTab;
+  window.verDetalle = verDetalle; window.abrirAsignar = abrirAsignar;
+  window.toggleRevisor = toggleRevisor; window.confirmarAsignacion = confirmarAsignacion;
+  window.closeModal = closeModal;
+
+  init();
+</script>
+</body>
+</html>

@@ -1,70 +1,198 @@
-const CACHE_NAME = 'revista-academica-v1';
-const urlsToCache = [
+/**
+ * RevisionAR · Service Worker v2
+ * Cache-first para assets estáticos, Network-first para datos
+ */
+
+// En producción, silenciar logs del SW para no contaminar la consola del usuario
+const isDev = false; // cambiar a true para depuración
+const swLog  = isDev ? console.log.bind(console)  : () => {};
+const swWarn = isDev ? console.warn.bind(console) : () => {};
+
+const CACHE_NAME   = 'revisionAR-v2';
+const CACHE_STATIC = 'revisionAR-static-v2';
+const CACHE_DATA   = 'revisionAR-data-v2';
+
+// Archivos que se cachean al instalar (shell estático de la app)
+const STATIC_ASSETS = [
   '/',
+  '/index.html',
+  '/portal-editor.html',
+  '/portal-revisor.html',
   '/portal-autor.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/css/shared.css',
+  '/js/db.js',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
 ];
 
-// Instalación
+// ============ INSTALL ============
 self.addEventListener('install', event => {
+  swLog('[SW] Instalando…');
   event.waitUntil(
-      caches.open(CACHE_NAME)
-          .then(cache => {
-            console.log('✅ Cache abierto');
-            return cache.addAll(urlsToCache);
-          })
+    caches.open(CACHE_STATIC).then(cache => {
+      return cache.addAll(STATIC_ASSETS.map(url => {
+        return new Request(url, { cache: 'reload' });
+      })).catch(err => {
+        swWarn('[SW] Algunos assets no cachearon (normal en desarrollo):', err);
+      });
+    }).then(() => self.skipWaiting())
   );
 });
 
-// Activación - limpiar caches viejos
+// ============ ACTIVATE ============
 self.addEventListener('activate', event => {
+  swLog('[SW] Activando…');
   event.waitUntil(
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-            cacheNames.map(cacheName => {
-              if (cacheName !== CACHE_NAME) {
-                console.log('🗑️ Eliminando cache viejo:', cacheName);
-                return caches.delete(cacheName);
-              }
-            })
-        );
-      })
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_STATIC && k !== CACHE_DATA)
+          .map(k => {
+            swLog('[SW] Borrando cache viejo:', k);
+            return caches.delete(k);
+          })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// Interceptar peticiones
+// ============ FETCH ============
 self.addEventListener('fetch', event => {
-  event.respondWith(
-      caches.match(event.request)
-          .then(response => {
-            // Si está en cache, devolverlo
-            if (response) {
-              return response;
-            }
+  const { request } = event;
+  const url = new URL(request.url);
 
-            // Si no, buscar en red
-            return fetch(event.request)
-                .then(response => {
-                  // Verificar si es válido
-                  if (!response || response.status !== 200 || response.type !== 'basic') {
-                    return response;
-                  }
+  // Ignorar extensiones de Chrome, datos, blobs, etc.
+  if (!url.protocol.startsWith('http')) return;
 
-                  // Clonar y guardar en cache
-                  const responseToCache = response.clone();
-                  caches.open(CACHE_NAME)
-                      .then(cache => {
-                        cache.put(event.request, responseToCache);
-                      });
+  // Rutas de API → Network-first con fallback
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirstStrategy(request));
+    return;
+  }
 
-                  return response;
-                })
-                .catch(() => {
-                  // Si falla la red y es página, mostrar offline
-                  if (event.request.mode === 'navigate') {
-                    return caches.match('/portal-autor.html');
-                  }
-                });
-          })
+  // Fuentes de Google → Cache-first
+  if (url.hostname.includes('fonts.')) {
+    event.respondWith(cacheFirstStrategy(request, CACHE_STATIC));
+    return;
+  }
+
+  // Assets estáticos → Cache-first
+  event.respondWith(cacheFirstStrategy(request, CACHE_STATIC));
+});
+
+/**
+ * Cache-first: sirve desde caché; si falla, va a red y actualiza caché.
+ */
+async function cacheFirstStrategy(request, cacheName) {
+  const cached = await caches.match(request, { ignoreSearch: false });
+  if (cached) return cached;
+
+  try {
+    const networkResp = await fetch(request.clone());
+    if (networkResp.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResp.clone());
+    }
+    return networkResp;
+  } catch (_) {
+    // Offline y no está en caché → página de fallback
+    return offlineFallback(request);
+  }
+}
+
+/**
+ * Network-first: intenta red; si falla, sirve desde caché.
+ */
+async function networkFirstStrategy(request) {
+  try {
+    const networkResp = await fetch(request.clone());
+    if (networkResp.ok) {
+      const cache = await caches.open(CACHE_DATA);
+      cache.put(request, networkResp.clone());
+    }
+    return networkResp;
+  } catch (_) {
+    const cached = await caches.match(request);
+    return cached || offlineFallback(request);
+  }
+}
+
+/**
+ * Respuesta de fallback cuando no hay caché ni red.
+ */
+function offlineFallback(request) {
+  if (request.destination === 'document') {
+    return caches.match('/index.html');
+  }
+  return new Response(
+    JSON.stringify({ error: 'Sin conexión. Los datos se sincronizarán cuando vuelva internet.' }),
+    { status: 503, headers: { 'Content-Type': 'application/json' } }
   );
+}
+
+// ============ BACKGROUND SYNC ============
+self.addEventListener('sync', event => {
+  swLog('[SW] Background sync:', event.tag);
+
+  if (event.tag === 'sync-articulos') {
+    event.waitUntil(sincronizarArticulos());
+  }
+
+  if (event.tag === 'sync-revisiones') {
+    event.waitUntil(sincronizarRevisiones());
+  }
+});
+
+async function sincronizarArticulos() {
+  // Notifica a todos los clientes para que ejecuten su lógica de sync
+  const clients = await self.clients.matchAll({ includeUncontrolled: true });
+  clients.forEach(client => client.postMessage({ type: 'TRIGGER_SYNC', store: 'articulos' }));
+  swLog('[SW] Sync de artículos disparado');
+}
+
+async function sincronizarRevisiones() {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true });
+  clients.forEach(client => client.postMessage({ type: 'TRIGGER_SYNC', store: 'revisiones' }));
+  swLog('[SW] Sync de revisiones disparado');
+}
+
+// ============ PUSH NOTIFICATIONS ============
+self.addEventListener('push', event => {
+  let data = { title: 'RevisionAR', body: 'Tienes una nueva notificación', icon: '/icons/icon-192.png' };
+  try { data = { ...data, ...event.data.json() }; } catch (_) {}
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body:  data.body,
+      icon:  data.icon || '/icons/icon-192.png',
+      badge: '/icons/icon-72.png',
+      data:  data,
+      actions: data.actions || [],
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(clientList => {
+      const existing = clientList.find(c => c.url === url && 'focus' in c);
+      if (existing) return existing.focus();
+      return clients.openWindow(url);
+    })
+  );
+});
+
+// ============ MENSAJES DESDE LA APP ============
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+
+  if (event.data?.type === 'CACHE_ARTICLE') {
+    // Cachear artículo específico para lectura offline
+    const { url } = event.data;
+    caches.open(CACHE_DATA).then(cache => cache.add(url));
+  }
 });

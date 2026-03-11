@@ -1,1106 +1,616 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Revista Académica · Envío y Consulta</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 30px 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 750px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            color: #333;
-            font-size: 26px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 15px;
-            border-left: 4px solid #667eea;
-            padding-left: 15px;
-        }
-
-        /* Tabs de navegación */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            border: none;
-            background: none;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-            cursor: pointer;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.2s;
-        }
-
-        .tab:hover {
-            color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .tab.active {
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-        }
-
-        /* Secciones */
-        .section {
-            display: none;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        /* Estilos existentes */
-        .offline-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ff9800;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .offline-indicator.show {
-            display: flex;
-        }
-        
-        .form-row {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            color: #444;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        label .required {
-            color: #e53e3e;
-            margin-left: 3px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background-color: #fafafa;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background-color: white;
-        }
-
-        input.valid, select.valid, textarea.valid {
-            border-color: #38a169;
-        }
-
-        input.invalid, select.invalid, textarea.invalid {
-            border-color: #e53e3e;
-        }
-
-        .field-error {
-            color: #e53e3e;
-            font-size: 13px;
-            margin-top: 5px;
-            min-height: 20px;
-        }
-
-        .word-counter {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 5px;
-            font-size: 12px;
-        }
-
-        .word-count {
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-
-        .word-count.safe {
-            color: #38a169;
-        }
-
-        .word-count.warning {
-            color: #f6ad55;
-        }
-
-        .word-count.danger {
-            color: #e53e3e;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 20px 0 15px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-top: 2px;
-            accent-color: #667eea;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 25px;
-        }
-
-        .btn {
-            padding: 14px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1 1 auto;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #5a67d8;
-            transform: translateY(-1px);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #667eea;
-            color: #667eea;
-            font-weight: 500;
-            padding: 8px 15px;
-        }
-
-        .btn-outline:hover {
-            background: #667eea10;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .message-area {
-            margin: 20px 0 10px;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f0f4ff;
-            border-left: 6px solid #667eea;
-            font-size: 15px;
-        }
-
-        .success-message {
-            background: #e6fffa;
-            border-left-color: #2c7a5a;
-            color: #1e4b3c;
-        }
-
-        .error-message {
-            background: #fff5f5;
-            border-left-color: #e53e3e;
-            color: #742a2a;
-        }
-
-        /* Estilos para portal de autor */
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .badge-revision {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-aceptado {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-rechazado {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .article-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .progress-section {
-            margin-bottom: 25px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #667eea;
-            border-radius: 5px;
-            transition: width 0.3s ease;
-        }
-
-        .timeline {
-            margin-top: 25px;
-        }
-
-        .timeline h3 {
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
-        .timeline-item {
-            display: flex;
-            margin-bottom: 15px;
-            position: relative;
-            padding-left: 25px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #667eea;
-        }
-
-        .timeline-item::after {
-            content: '';
-            position: absolute;
-            left: 5px;
-            top: 20px;
-            width: 2px;
-            height: 35px;
-            background: #e0e0e0;
-        }
-
-        .timeline-item:last-child::after {
-            display: none;
-        }
-
-        .timeline-date {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-        }
-
-        .timeline-text {
-            color: #333;
-            font-size: 14px;
-        }
-
-        .login-form {
-            transition: all 0.3s ease;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        th {
-            background: #f7f9fc;
-            color: #444;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 12px 8px;
-        }
-
-        td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #edf2f7;
-            font-size: 14px;
-        }
-
-        .demo-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 14px;
-            border-left: 4px solid #667eea;
-        }
-
-        code {
-            background: #e8e8e8;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-
-        @media (max-width: 600px) {
-            .card { padding: 20px; }
-            .btn-group { flex-direction: column; }
-            .tabs { flex-direction: column; }
-            .tab { text-align: center; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="description" content="Portal del autor: envía manuscritos académicos, consulta el estado de revisión por pares y responde comentarios de revisores.">
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevisionAR · Portal del Autor — Seguimiento de envíos</title>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RevisionAR">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript></noscript>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .upload-zone{
+      border:2px dashed var(--border);border-radius:var(--radius);
+      padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;background:white;
+    }
+    .upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--accent-light);}
+    .upload-zone input{display:none;}
+    .upload-icon{font-size:36px;margin-bottom:10px;display:block;}
+    .file-selected{
+      display:flex;align-items:center;gap:12px;padding:12px 16px;
+      background:var(--green-light);border:1px solid #a8d8bc;border-radius:8px;margin-top:10px;
+    }
+    .file-selected span{font-size:13px;color:var(--green);font-weight:500;flex:1;}
+    .word-meter{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
+    .wc{font-size:12px;font-weight:600;}
+    .wc.safe{color:var(--green);}.wc.warn{color:#d97706;}.wc.over{color:var(--red);}
+    .consulta-box{background:var(--paper);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+    .consulta-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+    .consulta-row .form-group{flex:1;min-width:160px;margin-bottom:0;}
+    .score-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .score-label{font-size:13px;color:var(--muted);width:100px;flex-shrink:0;}
+    .score-bar{flex:1;height:8px;background:var(--paper-dark);border-radius:4px;overflow:hidden;}
+    .score-fill{height:100%;border-radius:4px;background:var(--accent);transition:width 0.5s;}
+    .score-val{font-size:13px;font-weight:600;width:24px;text-align:right;flex-shrink:0;}
+    .comment-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px;}
+    .comment-head{padding:12px 16px;background:var(--paper);display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+    .comment-body{padding:14px 16px;font-size:14px;line-height:1.6;}
+    .comment-reply{padding:12px 16px;border-top:1px solid var(--border);}
+    .envio-card{border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;background:white;}
+  </style>
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://revisionAR.app/portal-autor.html">
+  <meta property="og:title" content="Portal del Autor — RevisionAR">
+  <meta property="og:description" content="Envía manuscritos, consulta el estado de revisión y responde comentarios de revisores.">
+  <meta property="og:image" content="icons/icon-512.png">
+  <meta property="og:locale" content="es_MX">
+  <meta name="author" content="RevisionAR">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Portal del Autor — RevisionAR">
+  <meta name="twitter:description" content="Envía manuscritos, consulta el estado de revisión y responde comentarios de revisores.">
 </head>
 <body>
-    <div class="offline-indicator" id="offlineIndicator">
-        <span>📴</span> Modo offline
+
+<a class="skip-link" href="#main-content">Ir al contenido principal</a>
+<div class="offline-bar" id="offlineBar" role="alert" aria-live="assertive">📴 Sin conexión — tu información está guardada localmente</div>
+
+<div class="app-shell">
+  <header class="topbar" role="banner">
+    <a href="index.html" class="topbar-brand" aria-label="RevisionAR — inicio">📚 RevisionAR</a>
+    <span class="topbar-role">Autor</span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <span id="statusConn" style="font-size:12px;color:#4ade80;">● En línea</span>
+      <div class="avatar" style="background:var(--gold);color:var(--ink);">AL</div>
     </div>
+  </header>
 
-    <div class="container">
-        <div class="card">
-            <h1>📚 Revista Académica</h1>
-            <div class="subtitle">Sistema de envío y seguimiento de artículos</div>
+  <main class="main-content" id="main-content">
+    <h1 class="visually-hidden">Portal del Autor — RevisionAR</h1>
+    <nav class="tabs-nav" role="tablist" aria-label="Secciones del panel">
+      <button class="tab-btn active" onclick="showTab('envio',this)">📤 Enviar artículo</button>
+      <button class="tab-btn" onclick="showTab('estado',this)">🔍 Estado de revisión</button>
+      <button class="tab-btn" onclick="showTab('responder',this)">💬 Responder comentarios</button>
+      <button class="tab-btn" onclick="showTab('mis-envios',this)">📚 Mis envíos</button>
+    </nav>
 
-            <!-- Tabs de navegación -->
-            <div class="tabs">
-                <button class="tab active" onclick="cambiarTab('envio')">📤 Enviar artículo</button>
-                <button class="tab" onclick="cambiarTab('consulta')">🔍 Consultar estado</button>
-            </div>
-
-            <!-- SECCIÓN 1: FORMULARIO DE ENVÍO -->
-            <div id="seccionEnvio" class="section active">
-                <form id="envioForm" novalidate>
-                    <div class="form-row">
-                        <label>Nombre completo del autor <span class="required">*</span></label>
-                        <input type="text" id="autor-nombre" placeholder="Ej. María González López" maxlength="100">
-                        <div class="field-error" id="error-nombre"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Correo electrónico <span class="required">*</span></label>
-                        <input type="email" id="autor-email" placeholder="autor@institucion.edu">
-                        <div class="field-error" id="error-email"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Institución / Afiliación</label>
-                        <input type="text" id="autor-institucion" placeholder="Universidad / Centro de investigación">
-                        <div class="field-error" id="error-institucion"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Título del artículo <span class="required">*</span></label>
-                        <input type="text" id="articulo-titulo" placeholder="Título completo del trabajo" maxlength="200">
-                        <div class="field-error" id="error-titulo"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Área temática <span class="required">*</span></label>
-                        <select id="articulo-area">
-                            <option value="" disabled selected>-- Seleccione --</option>
-                            <option value="Ciencias de la Computación">Ciencias de la Computación</option>
-                            <option value="Ingeniería">Ingeniería</option>
-                            <option value="Matemáticas">Matemáticas</option>
-                            <option value="Física">Física</option>
-                            <option value="Biología">Biología</option>
-                            <option value="Ciencias Sociales">Ciencias Sociales</option>
-                        </select>
-                        <div class="field-error" id="error-area"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Resumen <span class="required">*</span></label>
-                        <textarea id="articulo-resumen" rows="4" placeholder="Máximo 250 palabras"></textarea>
-                        <div class="word-counter">
-                            <span class="word-count" id="wordCount">0/250 palabras</span>
-                        </div>
-                        <div class="field-error" id="error-resumen"></div>
-                    </div>
-
-                    <div class="form-row">
-                        <label>Archivo (PDF, DOC, DOCX, TEX) <span class="required">*</span></label>
-                        <input type="file" id="articulo-archivo" accept=".pdf,.tex,.doc,.docx">
-                        <div class="field-error" id="error-archivo"></div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="confirmacion-original">
-                        <label for="confirmacion-original">Confirmo que este trabajo es original y no ha sido publicado previamente <span class="required">*</span></label>
-                    </div>
-                    <div class="field-error" id="error-checkbox"></div>
-
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary" id="btnEnviar" disabled>📨 Enviar artículo</button>
-                        <button type="button" class="btn btn-secondary" id="btnCancelar">🗑️ Limpiar</button>
-                    </div>
-
-                    <div id="mensajeGlobal" class="message-area" style="display: none;"></div>
-                </form>
-
-                <!-- Tabla de envíos recientes -->
-                <div style="margin-top: 30px;">
-                    <h3>📋 Tus últimos envíos</h3>
-                    <table>
-                        <thead>
-                            <tr><th>Código</th><th>Título</th><th>Fecha</th><th>Estado</th><th></th></tr>
-                        </thead>
-                        <tbody id="recientesBody">
-                            <tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- SECCIÓN 2: PORTAL DE AUTOR (CONSULTA) -->
-            <div id="seccionConsulta" class="section">
-                <!-- Login -->
-                <div id="loginScreen" class="login-form">
-                    <div class="form-group">
-                        <label>Código del artículo</label>
-                        <input type="text" id="articleCode" placeholder="Ej: ART-2026-001" value="ART-2026-001">
-                    </div>
-                    <div class="form-group">
-                        <label>Clave de acceso</label>
-                        <input type="password" id="accessKey" placeholder="Clave enviada por email" value="autor123">
-                    </div>
-                    <button class="btn btn-primary" id="consultarBtn">Consultar estado</button>
-                    <div id="errorMsg" class="field-error"></div>
-
-                    <div class="demo-info">
-                        <p><strong>🔍 Códigos de prueba:</strong></p>
-                        <p>📌 <code>ART-2026-001</code> / <code>autor123</code> - En revisión</p>
-                        <p>📌 <code>ART-2026-002</code> / <code>autor456</code> - Aceptado</p>
-                    </div>
-                </div>
-
-                <!-- Pantalla de estado (oculta inicialmente) -->
-                <div id="statusScreen" class="status-screen" style="display: none;">
-                    <div class="status-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <h2>Estado del artículo</h2>
-                        <span class="status-badge" id="statusBadge">En revisión</span>
-                    </div>
-
-                    <div class="article-title" id="articleTitle">
-                        Título del artículo aquí
-                    </div>
-
-                    <div class="progress-section">
-                        <div class="progress-label">
-                            <span id="progressText">2 de 3 revisiones</span>
-                            <span id="progressPercentage">66%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill" style="width: 66%"></div>
-                        </div>
-                    </div>
-
-                    <div class="timeline">
-                        <h3>Línea de tiempo</h3>
-                        <div id="timelineContainer"></div>
-                    </div>
-
-                    <button class="btn btn-secondary" id="volverBtn" style="margin-top: 25px;">← Nueva consulta</button>
-                </div>
-            </div>
+    <!-- ======== TAB ENVÍO ======== -->
+    <div class="tab-panel active" id="tab-envio">
+      <div class="card">
+        <div class="card-header">
+          <div><h2 class="card-title">Enviar nuevo artículo</h2><div class="card-subtitle">Tu envío se guarda aunque pierdas conexión</div></div>
         </div>
 
-        <div class="demo-note">
-            <p><strong>📌 PWA offline-first:</strong> Funciona sin internet. Los datos se guardan localmente y se sincronizan automáticamente.</p>
-            <p>🟢 Estado: <span id="connectionStatus">Conectado</span></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Nombre completo <span class="req">*</span></label>
+            <input type="text" class="form-control" id="fNombre" autocomplete="name" placeholder="Mtra. Andrea López" oninput="validarForm()">
+            <div class="form-error" id="eNombre"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo electrónico <span class="req">*</span></label>
+            <input type="email" class="form-control" id="fEmail" autocomplete="email" placeholder="andrea@universidad.edu" oninput="validarForm()">
+            <div class="form-error" id="eEmail"></div>
+          </div>
         </div>
+
+        <div class="form-group">
+          <label class="form-label">Institución</label>
+          <input type="text" class="form-control" id="fInstitucion" autocomplete="organization" placeholder="Universidad / Centro de investigación">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Título del artículo <span class="req">*</span></label>
+          <input type="text" class="form-control" id="fTitulo" placeholder="Título completo del manuscrito" oninput="validarForm()">
+          <div class="form-error" id="eTitulo"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Área temática <span class="req">*</span></label>
+          <select class="form-control" id="fArea" onchange="validarForm()">
+            <option value="">— Seleccionar área —</option>
+            <option>Inteligencia Artificial</option>
+            <option>Educación y Tecnología</option>
+            <option>Ciencias Ambientales</option>
+            <option>Salud y Medicina</option>
+            <option>Ciencias Sociales</option>
+            <option>Ingeniería y Sistemas</option>
+            <option>Economía y Negocios</option>
+            <option>Humanidades y Artes</option>
+          </select>
+          <div class="form-error" id="eArea"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Resumen ejecutivo <span class="req">*</span> <span style="font-weight:400;color:var(--muted);">(máx. 250 palabras)</span></label>
+          <textarea class="form-control" id="fResumen" rows="6" placeholder="Objetivo, metodología y principales hallazgos…" oninput="contarPalabras();validarForm()"></textarea>
+          <div class="word-meter">
+            <div class="form-error" id="eResumen"></div>
+            <span class="wc safe" id="wordCount">0 / 250 palabras</span>
+          </div>
+        </div>
+
+        <!-- Upload de PDF — acepta PDF y DOCX -->
+        <div class="form-group">
+          <label class="form-label">Manuscrito <span class="req">*</span> <span style="font-weight:400;color:var(--muted);">(PDF o DOCX · máx. 10 MB)</span></label>
+          <div class="upload-zone" role="button" tabindex="0" aria-label="Zona de carga: haz clic o arrastra tu archivo aquí" id="uploadZone"
+               onclick="document.getElementById('fArchivo').click()"
+               ondragover="event.preventDefault();this.classList.add('dragover')"
+               ondragleave="this.classList.remove('dragover')"
+               ondrop="handleDrop(event)">
+            <input type="file" id="fArchivo"
+                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                   onchange="archivoSeleccionado(this)">
+            <span class="upload-icon">📎</span>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">Haz clic o arrastra tu archivo aquí</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;">PDF o Word · Máximo 10 MB</div>
+          </div>
+          <div id="archivoInfo"></div>
+          <div class="form-error" id="eArchivo"></div>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--paper);border-radius:var(--radius-sm);">
+          <input type="checkbox" id="fOriginalidad" style="width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;" onchange="validarForm()">
+          <label for="fOriginalidad" style="font-size:14px;line-height:1.5;cursor:pointer;">
+            Confirmo que este manuscrito es original, no ha sido publicado ni está bajo revisión en otra revista, y que todos los autores aprobaron su envío.
+          </label>
+        </div>
+        <div class="form-error" id="eOriginalidad"></div>
+
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="limpiarForm()">Limpiar</button>
+          <button class="btn btn-primary" id="btnEnviar" onclick="procesarEnvio()" disabled style="flex:1;">📨 Enviar artículo</button>
+        </div>
+        <div id="mensajeEnvio" style="display:none;margin-top:16px;padding:16px;border-radius:var(--radius-sm);"></div>
+      </div>
     </div>
 
-    <script>
-        // ========== VARIABLES GLOBALES ==========
-        const DB_NAME = 'ArticulosDB';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'articulos';
-        let db = null;
-        let isOnline = navigator.onLine;
+    <!-- ======== TAB ESTADO ======== -->
+    <div class="tab-panel" id="tab-estado">
+      <div class="consulta-box">
+        <div style="font-size:16px;font-weight:600;margin-bottom:16px;">Consultar estado de tu artículo</div>
+        <div class="consulta-row">
+          <div class="form-group">
+            <label class="form-label">Código de artículo</label>
+            <input type="text" class="form-control" id="codigoConsulta" placeholder="ART-2026-001" value="ART-2026-001">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clave de acceso</label>
+            <input type="password" class="form-control" id="claveConsulta" placeholder="••••••" value="autor123">
+          </div>
+          <button class="btn btn-primary" style="white-space:nowrap;" onclick="consultarEstado()">Consultar →</button>
+        </div>
+        <div class="form-error" id="eConsulta"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;">
+          💡 Demo: usa código <code>ART-2026-001</code> con clave <code>autor123</code>
+        </div>
+      </div>
+      <div id="resultadoEstado"></div>
+    </div>
 
-        // ========== ELEMENTOS DOM ==========
-        // Generales
-        const offlineIndicator = document.getElementById('offlineIndicator');
-        const connectionStatus = document.getElementById('connectionStatus');
+    <!-- ======== TAB RESPONDER ======== -->
+    <div class="tab-panel" id="tab-responder">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Responder comentarios de revisores</div>
+            <div class="card-subtitle">ART-2026-001 · Aprendizaje automático en diagnóstico médico</div>
+          </div>
+        </div>
+        <div style="background:var(--paper);border-radius:8px;padding:14px;margin-bottom:20px;font-size:13px;color:var(--muted);">
+          ℹ️ Los comentarios provienen de revisión doble ciega. No verás el nombre de los revisores.
+        </div>
 
-        // Tabs
-        const seccionEnvio = document.getElementById('seccionEnvio');
-        const seccionConsulta = document.getElementById('seccionConsulta');
-        const tabs = document.querySelectorAll('.tab');
+        <div class="comment-card">
+          <div class="comment-head">
+            <span>💬 Revisor 1 · Comentario general</span>
+            <span class="badge badge-revision" id="badgeC1">Sin respuesta</span>
+          </div>
+          <div class="comment-body">
+            La metodología está bien fundamentada, pero falta justificar la elección del tamaño de muestra (n=2,400). ¿Por qué este número? ¿Cómo garantiza representatividad estadística? También sugiero agregar una tabla comparativa en la sección de discusión.
+          </div>
+          <div class="comment-reply">
+            <textarea class="form-control" id="respC1" placeholder="Escribe tu respuesta al revisor 1…" rows="3" oninput="autoSaveResp('c1')"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:10px;">
+              <button class="btn btn-sm btn-secondary" onclick="guardarRespuesta('c1')">Guardar borrador</button>
+              <button class="btn btn-sm btn-primary" onclick="marcarRespondido('c1')">Marcar respondido ✓</button>
+            </div>
+          </div>
+        </div>
 
-        // Formulario envío
-        const envioForm = document.getElementById('envioForm');
-        const nombre = document.getElementById('autor-nombre');
-        const email = document.getElementById('autor-email');
-        const institucion = document.getElementById('autor-institucion');
-        const titulo = document.getElementById('articulo-titulo');
-        const area = document.getElementById('articulo-area');
-        const resumen = document.getElementById('articulo-resumen');
-        const archivo = document.getElementById('articulo-archivo');
-        const checkbox = document.getElementById('confirmacion-original');
-        const btnEnviar = document.getElementById('btnEnviar');
-        const btnCancelar = document.getElementById('btnCancelar');
-        const mensajeGlobal = document.getElementById('mensajeGlobal');
-        const recientesBody = document.getElementById('recientesBody');
+        <div class="comment-card">
+          <div class="comment-head">
+            <span>💬 Revisor 1 · Sección: Metodología</span>
+            <span class="badge badge-completada">Respondido</span>
+          </div>
+          <div class="comment-body">
+            Las métricas de evaluación deben incluir intervalos de confianza para cada modelo. Solo se reporta el promedio, lo cual puede ser engañoso con muestras desbalanceadas.
+          </div>
+          <div class="comment-body" style="background:var(--green-light);border-top:1px solid var(--border);font-size:13px;">
+            <strong style="color:var(--green);display:block;margin-bottom:4px;">Tu respuesta:</strong>
+            En la versión revisada (sección 3.4) hemos añadido intervalos de confianza al 95% usando bootstrapping con 1000 iteraciones. Ver Tabla 3 actualizada.
+          </div>
+        </div>
 
-        // Portal consulta
-        const loginScreen = document.getElementById('loginScreen');
-        const statusScreen = document.getElementById('statusScreen');
-        const articleCode = document.getElementById('articleCode');
-        const accessKey = document.getElementById('accessKey');
-        const consultarBtn = document.getElementById('consultarBtn');
-        const volverBtn = document.getElementById('volverBtn');
-        const errorMsg = document.getElementById('errorMsg');
-        const statusBadge = document.getElementById('statusBadge');
-        const articleTitle = document.getElementById('articleTitle');
-        const progressText = document.getElementById('progressText');
-        const progressPercentage = document.getElementById('progressPercentage');
-        const progressFill = document.getElementById('progressFill');
-        const timelineContainer = document.getElementById('timelineContainer');
+        <div style="display:flex;justify-content:flex-end;margin-top:20px;gap:12px;">
+          <button class="btn btn-secondary" onclick="showToast('💾 Borradores guardados','success')">💾 Guardar todo</button>
+          <button class="btn btn-primary" onclick="showToast('📤 Sube primero la versión revisada del PDF','info')">📤 Subir versión revisada</button>
+        </div>
+      </div>
+    </div>
 
-        // ========== DATOS MOCK PARA CONSULTA ==========
-        const articulosMock = {
-            'ART-2026-001': {
-                claveAcceso: 'autor123',
-                titulo: 'Análisis de sostenibilidad en infraestructura urbana',
-                autor: 'Mtra. Andrea López',
-                estado: 'revision',
-                fechaEnvio: '2026-02-15',
-                revisionesCompletadas: 2,
-                totalRevisiones: 3,
-                timeline: [
-                    { fecha: '2026-02-15', evento: 'Artículo enviado' },
-                    { fecha: '2026-02-18', evento: 'Asignado a revisores' },
-                    { fecha: '2026-02-20', evento: '1ª revisión completada' },
-                    { fecha: '2026-02-22', evento: '2ª revisión completada' },
-                    { fecha: '2026-02-24', evento: 'Esperando 3ª revisión' }
-                ]
-            },
-            'ART-2026-002': {
-                claveAcceso: 'autor456',
-                titulo: 'Optimización de recursos en construcción sustentable',
-                autor: 'Ing. Carlos Ruiz',
-                estado: 'aceptado',
-                fechaEnvio: '2026-01-10',
-                revisionesCompletadas: 3,
-                totalRevisiones: 3,
-                timeline: [
-                    { fecha: '2026-01-10', evento: 'Artículo enviado' },
-                    { fecha: '2026-01-15', evento: 'Asignado a revisores' },
-                    { fecha: '2026-01-25', evento: '1ª revisión completada' },
-                    { fecha: '2026-02-01', evento: '2ª revisión completada' },
-                    { fecha: '2026-02-10', evento: '3ª revisión completada' },
-                    { fecha: '2026-02-20', evento: 'Artículo ACEPTADO' }
-                ]
-            }
-        };
+    <!-- ======== TAB MIS ENVÍOS ======== -->
+    <div class="tab-panel" id="tab-mis-envios">
+      <div id="misEnviosLista"><div style="text-align:center;padding:32px;color:var(--muted);">Cargando...</div></div>
+    </div>
 
-        // ========== FUNCIONES DE UTILIDAD ==========
-        function cambiarTab(tab) {
-            // Actualizar tabs
-            tabs.forEach(t => t.classList.remove('active'));
-            if (tab === 'envio') {
-                tabs[0].classList.add('active');
-                seccionEnvio.classList.add('active');
-                seccionConsulta.classList.remove('active');
-            } else {
-                tabs[1].classList.add('active');
-                seccionConsulta.classList.add('active');
-                seccionEnvio.classList.remove('active');
-            }
-        }
+  </main>
+</div>
 
-        // ========== INDEXEDDB ==========
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'codigo' });
-                        store.createIndex('fecha', 'fecha', { unique: false });
-                    }
-                };
-            });
-        }
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-        function guardarArticulo(articulo) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.add(articulo);
-                request.onsuccess = () => resolve(articulo);
-                request.onerror = () => reject(request.error);
-            });
-        }
+<script src="js/db.js"></script>
+<script>
+  const { articulos, revisiones, syncQueue, seedDemoData } = RevDB;
+  let archivoFile = null;
+  const respTimers = {};
 
-        function obtenerRecientes() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const index = store.index('fecha');
-                const articulos = [];
-                const request = index.openCursor(null, 'prev');
-                
-                request.onsuccess = (event) => {
-                    const cursor = event.target.result;
-                    if (cursor && articulos.length < 10) {
-                        articulos.push(cursor.value);
-                        cursor.continue();
-                    } else {
-                        resolve(articulos);
-                    }
-                };
-                request.onerror = () => reject(request.error);
-            });
-        }
+  async function init() {
+    await seedDemoData();
+    updateOnlineStatus();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
 
-        // ========== FUNCIONES DEL FORMULARIO ==========
-        function contarPalabras(texto) {
-            if (!texto || texto.trim() === '') return 0;
-            return texto.trim().split(/\s+/).length;
-        }
+  /* ===== TABS ===== */
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+    if (id === 'mis-envios') renderMisEnvios();
+  }
 
-        function actualizarContador() {
-            const palabras = contarPalabras(resumen.value);
-            const wordCount = document.getElementById('wordCount');
-            wordCount.textContent = `${palabras}/250 palabras`;
-            wordCount.className = 'word-count';
-            if (palabras <= 200) wordCount.classList.add('safe');
-            else if (palabras <= 250) wordCount.classList.add('warning');
-            else wordCount.classList.add('danger');
-            return palabras;
-        }
+  /* ===== UPLOAD PDF ===== */
+  function archivoSeleccionado(input) {
+    const file = input.files[0];
+    if (!file) return;
+    procesarArchivo(file);
+  }
 
-        function validarFormulario() {
-            const palabras = contarPalabras(resumen.value);
-            let valido = true;
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) procesarArchivo(file);
+  }
 
-            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                el.classList.remove('invalid', 'valid');
-            });
+  function procesarArchivo(file) {
+    const TIPOS_VALIDOS = ['application/pdf','application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const EXT_VALIDAS   = ['.pdf','.doc','.docx'];
+    const ext           = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
 
-            if (!nombre.value.trim()) {
-                document.getElementById('error-nombre').textContent = 'El nombre es obligatorio';
-                nombre.classList.add('invalid');
-                valido = false;
-            } else if (nombre.value.length > 100) {
-                document.getElementById('error-nombre').textContent = 'Máximo 100 caracteres';
-                nombre.classList.add('invalid');
-                valido = false;
-            } else {
-                nombre.classList.add('valid');
-            }
+    if (!TIPOS_VALIDOS.includes(file.type) && !EXT_VALIDAS.includes(ext)) {
+      document.getElementById('eArchivo').textContent = 'Formato no válido. Usa PDF o DOCX.';
+      archivoFile = null; validarForm(); return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      document.getElementById('eArchivo').textContent = 'El archivo supera los 10 MB.';
+      archivoFile = null; validarForm(); return;
+    }
 
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email.value.trim()) {
-                document.getElementById('error-email').textContent = 'El email es obligatorio';
-                email.classList.add('invalid');
-                valido = false;
-            } else if (!emailRegex.test(email.value)) {
-                document.getElementById('error-email').textContent = 'Email inválido';
-                email.classList.add('invalid');
-                valido = false;
-            } else {
-                email.classList.add('valid');
-            }
+    archivoFile = file;
+    document.getElementById('eArchivo').textContent = '';
 
-            if (!titulo.value.trim()) {
-                document.getElementById('error-titulo').textContent = 'El título es obligatorio';
-                titulo.classList.add('invalid');
-                valido = false;
-            } else if (titulo.value.length > 200) {
-                document.getElementById('error-titulo').textContent = 'Máximo 200 caracteres';
-                titulo.classList.add('invalid');
-                valido = false;
-            } else {
-                titulo.classList.add('valid');
-            }
+    const kb = file.size < 1024*1024
+      ? (file.size/1024).toFixed(0)+' KB'
+      : (file.size/(1024*1024)).toFixed(1)+' MB';
 
-            if (!area.value) {
-                document.getElementById('error-area').textContent = 'Seleccione un área';
-                area.classList.add('invalid');
-                valido = false;
-            } else {
-                area.classList.add('valid');
-            }
+    document.getElementById('archivoInfo').innerHTML = `
+      <div class="file-selected">
+        <span style="font-size:24px;">${ext==='.pdf'?'📄':'📝'}</span>
+        <span><strong>${file.name}</strong><br><small>${kb} · ${file.type||ext}</small></span>
+        <button onclick="quitarArchivo()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--red);">×</button>
+      </div>`;
+    validarForm();
+  }
 
-            if (!resumen.value.trim()) {
-                document.getElementById('error-resumen').textContent = 'El resumen es obligatorio';
-                resumen.classList.add('invalid');
-                valido = false;
-            } else if (palabras > 250) {
-                document.getElementById('error-resumen').textContent = `Excede 250 palabras (tiene ${palabras})`;
-                resumen.classList.add('invalid');
-                valido = false;
-            } else {
-                resumen.classList.add('valid');
-            }
+  function quitarArchivo() {
+    archivoFile = null;
+    document.getElementById('fArchivo').value = '';
+    document.getElementById('archivoInfo').innerHTML = '';
+    validarForm();
+  }
 
-            if (archivo.files.length === 0) {
-                document.getElementById('error-archivo').textContent = 'Seleccione un archivo';
-                archivo.classList.add('invalid');
-                valido = false;
-            } else {
-                const file = archivo.files[0];
-                if (file.size > 10 * 1024 * 1024) {
-                    document.getElementById('error-archivo').textContent = 'Máximo 10MB';
-                    archivo.classList.add('invalid');
-                    valido = false;
-                } else {
-                    archivo.classList.add('valid');
-                }
-            }
+  /* ===== CONTADOR DE PALABRAS ===== */
+  function contarPalabras() {
+    const txt = document.getElementById('fResumen').value.trim();
+    const n   = txt ? txt.split(/\s+/).length : 0;
+    const el  = document.getElementById('wordCount');
+    el.textContent = `${n} / 250 palabras`;
+    el.className = 'wc ' + (n>250?'over':n>220?'warn':'safe');
+  }
 
-            if (!checkbox.checked) {
-                document.getElementById('error-checkbox').textContent = 'Debe confirmar la originalidad';
-                valido = false;
-            }
+  /* ===== VALIDACIÓN ===== */
+  function validarForm() {
+    const nombre      = document.getElementById('fNombre').value.trim();
+    const email       = document.getElementById('fEmail').value.trim();
+    const titulo      = document.getElementById('fTitulo').value.trim();
+    const area        = document.getElementById('fArea').value;
+    const resumen     = document.getElementById('fResumen').value.trim();
+    const originalidad= document.getElementById('fOriginalidad').checked;
+    const palabras    = resumen ? resumen.split(/\s+/).length : 0;
+    const tieneArchivo= !!archivoFile;
 
-            if (institucion.value) institucion.classList.add('valid');
+    const set = (id, msg) => { document.getElementById(id).textContent = msg; };
+    set('eNombre',     nombre ? '' : 'Campo obligatorio');
+    set('eEmail',      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Ingresa un correo válido');
+    set('eTitulo',     titulo ? '' : 'Campo obligatorio');
+    set('eArea',       area ? '' : 'Selecciona un área');
+    set('eResumen',    palabras>250 ? `Excede 250 palabras (tienes ${palabras})` : resumen ? '' : 'Campo obligatorio');
+    set('eArchivo',    tieneArchivo ? '' : document.getElementById('eArchivo').textContent);
+    set('eOriginalidad', originalidad ? '' : 'Debes confirmar la originalidad');
 
-            btnEnviar.disabled = !valido;
-            return valido;
-        }
+    const ok = nombre && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && titulo &&
+               area && resumen && palabras<=250 && tieneArchivo && originalidad;
+    document.getElementById('btnEnviar').disabled = !ok;
+    return ok;
+  }
 
-        function generarCodigo() {
-            const random = Math.floor(Math.random() * 900 + 100);
-            return `ART-2026-${random}`;
-        }
+  /* ===== ENVÍO ===== */
+  async function procesarEnvio() {
+    if (!validarForm()) return;
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Enviando…';
 
-        async function procesarEnvio() {
-            btnEnviar.disabled = true;
-            btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
+    try {
+      const rand   = Math.floor(Math.random()*900+100);
+      const codigo = `ART-2026-${rand}`;
+      const fecha  = new Date().toISOString().split('T')[0];
+      const limite = new Date(Date.now()+60*24*3600000).toISOString().split('T')[0];
 
-            try {
-                if (!validarFormulario()) {
-                    btnEnviar.innerHTML = '📨 Enviar artículo';
-                    validarFormulario();
-                    return;
-                }
+      const art = {
+        codigo, fechaEnvio: fecha, fechaLimite: limite,
+        autorNombre: document.getElementById('fNombre').value.trim(),
+        autorEmail:  document.getElementById('fEmail').value.trim(),
+        institucion: document.getElementById('fInstitucion').value.trim()||'(no especificada)',
+        titulo:  document.getElementById('fTitulo').value.trim(),
+        area:    document.getElementById('fArea').value,
+        resumen: document.getElementById('fResumen').value.trim(),
+        archivo: archivoFile ? archivoFile.name : '',
+        estado: 'pendiente', revisiones: 2, revisionesCompletas: 0,
+        claveAcceso: Math.random().toString(36).slice(2,8),
+        sincronizado: navigator.onLine,
+      };
 
-                const codigo = generarCodigo();
-                const fecha = new Date().toISOString().split('T')[0];
+      await articulos.guardar(art);
+      if (!navigator.onLine) await syncQueue.encolar('INSERT_ARTICULO', art);
 
-                const articulo = {
-                    codigo: codigo,
-                    autor: nombre.value.trim(),
-                    email: email.value.trim(),
-                    institucion: institucion.value.trim() || '(no especificada)',
-                    titulo: titulo.value.trim(),
-                    area: area.value,
-                    resumen: resumen.value.trim(),
-                    fecha: fecha,
-                    estado: 'Pendiente',
-                    archivo: archivo.files[0]?.name
-                };
+      const m = document.getElementById('mensajeEnvio');
+      m.style.display = 'block';
+      m.style.background = 'var(--green-light)';
+      m.style.border = '1px solid #a8d8bc';
+      m.innerHTML = `
+        <strong style="color:var(--green);">✅ Artículo registrado correctamente</strong><br>
+        <span style="font-size:14px;">Código: <code style="font-size:15px;font-weight:700;">${codigo}</code></span><br>
+        <span style="font-size:13px;color:var(--muted);display:block;margin-top:4px;">
+          Clave de acceso: <strong>${art.claveAcceso}</strong> ·
+          ${!navigator.onLine?'📴 Se sincronizará al reconectar':'🔄 Enviado al servidor'}
+        </span>`;
 
-                await guardarArticulo(articulo);
+      limpiarForm();
+      setTimeout(()=>{ m.style.display='none'; },10000);
+    } catch(err) {
+      console.error(err);
+      showToast('❌ Error al guardar. Intenta de nuevo.','error');
+    } finally {
+      btn.innerHTML = '📨 Enviar artículo';
+      validarForm();
+    }
+  }
 
-                mensajeGlobal.style.display = 'block';
-                mensajeGlobal.className = 'message-area success-message';
-                mensajeGlobal.innerHTML = `
-                    <strong>✅ Artículo guardado</strong><br>
-                    Código: <code>${codigo}</code><br>
-                    ${!isOnline ? '🔴 Se sincronizará cuando haya conexión' : '🟢 Guardado localmente'}
-                `;
+  function limpiarForm() {
+    ['fNombre','fEmail','fInstitucion','fTitulo','fResumen'].forEach(id => { document.getElementById(id).value=''; });
+    document.getElementById('fArea').value = '';
+    document.getElementById('fOriginalidad').checked = false;
+    document.getElementById('fArchivo').value = '';
+    document.getElementById('archivoInfo').innerHTML = '';
+    archivoFile = null;
+    contarPalabras(); validarForm();
+  }
 
-                envioForm.reset();
-                document.querySelectorAll('input, select, textarea').forEach(el => {
-                    el.classList.remove('valid', 'invalid');
-                });
-                actualizarContador();
-                cargarRecientes();
+  /* ===== CONSULTA ESTADO ===== */
+  async function consultarEstado() {
+    const codigo = document.getElementById('codigoConsulta').value.trim().toUpperCase();
+    const clave  = document.getElementById('claveConsulta').value.trim();
+    const errEl  = document.getElementById('eConsulta');
+    const resEl  = document.getElementById('resultadoEstado');
+    errEl.textContent = ''; resEl.innerHTML = '';
 
-                setTimeout(() => {
-                    mensajeGlobal.style.display = 'none';
-                }, 8000);
+    if (!codigo || !clave) { errEl.textContent = 'Ingresa código y clave'; return; }
 
-            } catch (error) {
-                mensajeGlobal.style.display = 'block';
-                mensajeGlobal.className = 'message-area error-message';
-                mensajeGlobal.textContent = '❌ Error al guardar';
-            } finally {
-                btnEnviar.innerHTML = '📨 Enviar artículo';
-                validarFormulario();
-            }
-        }
+    const art = await articulos.obtener(codigo);
+    if (!art || art.claveAcceso !== clave) {
+      errEl.textContent = '❌ Código o clave incorrectos. Prueba: ART-2026-001 / autor123';
+      return;
+    }
 
-        async function cargarRecientes() {
-            try {
-                const articulos = await obtenerRecientes();
-                if (articulos.length === 0) {
-                    recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay artículos</td></tr>';
-                    return;
-                }
+    const revs = await revisiones.porArticulo(codigo);
+    const pct  = art.revisiones>0 ? Math.round(((art.revisionesCompletas||0)/art.revisiones)*100) : 0;
 
-                let html = '';
-                articulos.forEach(art => {
-                    html += `<tr>
-                        <td><code>${art.codigo}</code></td>
-                        <td>${art.titulo.substring(0,30)}${art.titulo.length>30?'…':''}</td>
-                        <td>${art.fecha}</td>
-                        <td><span class="status-badge badge-revision">${art.estado}</span></td>
-                        <td><button class="btn-outline" style="padding:5px 10px;" onclick="cargarConsulta('${art.codigo}')">Ver</button></td>
-                    </tr>`;
-                });
-                recientesBody.innerHTML = html;
-            } catch (error) {
-                recientesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error al cargar</td></tr>';
-            }
-        }
+    const eMap = {
+      pendiente: { icon:'⏳', label:'Pendiente de asignación',    cls:'badge-pendiente', msg:'Tu artículo está siendo evaluado. Te notificaremos al asignar revisores.' },
+      revision:  { icon:'🔍', label:'En revisión por pares',       cls:'badge-revision',  msg:'Tu artículo está siendo evaluado por revisores especializados de forma anónima.' },
+      aceptado:  { icon:'🎉', label:'¡Aceptado para publicación!', cls:'badge-aceptado',  msg:'Felicitaciones. Recibirás instrucciones para la edición final.' },
+      rechazado: { icon:'📋', label:'No aceptado',                 cls:'badge-rechazado', msg:'Tu artículo no fue aceptado esta vez. Los comentarios de revisores están disponibles.' },
+    };
+    const e = eMap[art.estado] || eMap['pendiente'];
 
-        // ========== FUNCIONES DEL PORTAL DE CONSULTA ==========
-        function cargarConsulta(codigo) {
-            // Cambiar a la pestaña de consulta
-            cambiarTab('consulta');
-            
-            // Simular consulta
-            setTimeout(() => {
-                articleCode.value = codigo;
-                accessKey.value = 'autor123';
-                // Simular click en consultar
-                realizarConsulta();
-            }, 100);
-        }
+    // Puntajes promedio
+    const completas = revs.filter(r=>r.estado==='completada'&&Object.keys(r.puntajes||{}).length>0);
+    const prom = {};
+    ['originalidad','metodologia','claridad','relevancia'].forEach(k=>{
+      const vals = completas.map(r=>r.puntajes?.[k]).filter(Boolean);
+      if (vals.length) prom[k] = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+    });
 
-        function realizarConsulta() {
-            const codigo = articleCode.value.trim();
-            const clave = accessKey.value.trim();
+    const labelMap = { originalidad:'Originalidad', metodologia:'Metodología', claridad:'Claridad', relevancia:'Relevancia' };
 
-            if (!codigo || !clave) {
-                errorMsg.textContent = 'Ingrese código y clave';
-                return;
-            }
+    resEl.innerHTML = `
+      <div class="card">
+        <div style="text-align:center;padding:20px 0 24px;">
+          <div style="font-size:48px;margin-bottom:12px;">${e.icon}</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:8px;">${e.label}</div>
+          <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 14px;">${e.msg}</div>
+          <span class="badge ${e.cls}">${art.codigo}</span>
+        </div>
 
-            const articulo = articulosMock[codigo];
+        <div style="border-top:1px solid var(--border);padding-top:18px;margin-bottom:18px;">
+          <div style="font-weight:600;font-size:15px;margin-bottom:3px;">${art.titulo}</div>
+          <div style="font-size:13px;color:var(--muted);">${art.autorNombre} · ${art.institucion}</div>
+        </div>
 
-            if (!articulo || articulo.claveAcceso !== clave) {
-                errorMsg.textContent = 'Código o clave incorrectos';
-                return;
-            }
+        <div style="margin-bottom:18px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+            <span>Progreso de revisión</span>
+            <span style="font-weight:600;">${art.revisionesCompletas||0} de ${art.revisiones||0} revisiones completadas</span>
+          </div>
+          <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'var(--accent)'}"></div></div>
+        </div>
 
-            errorMsg.textContent = '';
-            mostrarEstado(articulo);
-        }
+        ${Object.keys(prom).length>0?`
+          <div style="margin-bottom:18px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Evaluación promedio de revisores</div>
+            ${Object.entries(prom).map(([k,v])=>`
+              <div class="score-row">
+                <span class="score-label">${labelMap[k]}</span>
+                <div class="score-bar"><div class="score-fill" style="width:${v*20}%"></div></div>
+                <span class="score-val">${v}</span>
+              </div>`).join('')}
+          </div>`:''}
 
-        function mostrarEstado(articulo) {
-            statusBadge.className = 'status-badge';
-            if (articulo.estado === 'revision') {
-                statusBadge.classList.add('badge-revision');
-                statusBadge.textContent = 'En revisión';
-            } else if (articulo.estado === 'aceptado') {
-                statusBadge.classList.add('badge-aceptado');
-                statusBadge.textContent = 'Aceptado';
-            } else {
-                statusBadge.classList.add('badge-rechazado');
-                statusBadge.textContent = 'Rechazado';
-            }
+        <div style="border-top:1px solid var(--border);padding-top:18px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px;">Línea de tiempo</div>
+          <div class="timeline">
+            <div class="timeline-item done">
+              <div class="timeline-date">${art.fechaEnvio}</div>
+              <div class="timeline-event">Artículo recibido</div>
+            </div>
+            ${art.estado!=='pendiente'?`
+              <div class="timeline-item done">
+                <div class="timeline-date">${art.fechaEnvio}</div>
+                <div class="timeline-event">Revisores asignados</div>
+                <div class="timeline-note">Revisión doble ciega iniciada</div>
+              </div>`:''}
+            ${art.estado==='aceptado'||art.estado==='rechazado'?`
+              <div class="timeline-item done">
+                <div class="timeline-date">${art.fechaLimite}</div>
+                <div class="timeline-event">Decisión editorial emitida</div>
+              </div>`:`
+              <div class="timeline-item pending">
+                <div class="timeline-date">Límite esperado: ${art.fechaLimite}</div>
+                <div class="timeline-event">Decisión editorial pendiente</div>
+              </div>`}
+          </div>
+        </div>
+      </div>`;
+  }
 
-            articleTitle.textContent = `"${articulo.titulo}" - ${articulo.autor}`;
+  /* ===== MIS ENVÍOS ===== */
+  async function renderMisEnvios() {
+    const todos = await articulos.listar();
+    const lista = document.getElementById('misEnviosLista');
+    if (todos.length===0) {
+      lista.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Aún no has enviado artículos. ¡Envía tu primer manuscrito!</p></div>';
+      return;
+    }
+    const bMap = { pendiente:'badge-pendiente',revision:'badge-revision',aceptado:'badge-aceptado',rechazado:'badge-rechazado' };
+    const lMap = { pendiente:'⏳ Pendiente',revision:'🔍 En revisión',aceptado:'✅ Aceptado',rechazado:'❌ Rechazado' };
+    lista.innerHTML = todos.map(art=>{
+      const pct = art.revisiones>0?Math.round(((art.revisionesCompletas||0)/art.revisiones)*100):0;
+      return `<div class="envio-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:15px;line-height:1.4;">${art.titulo}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${art.codigo} · Enviado: ${art.fechaEnvio}</div>
+          </div>
+          <span class="badge ${bMap[art.estado]||'badge-pendiente'}">${lMap[art.estado]||'⏳ Pendiente'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span style="font-size:12px;color:var(--muted);white-space:nowrap;">${art.revisionesCompletas||0}/${art.revisiones||0} revisiones</span>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="verEstadoDirecto('${art.codigo}','${art.claveAcceso}')">Ver estado detallado →</button>
+      </div>`;
+    }).join('');
+  }
 
-            const porcentaje = Math.round((articulo.revisionesCompletadas / articulo.totalRevisiones) * 100);
-            progressText.textContent = `${articulo.revisionesCompletadas} de ${articulo.totalRevisiones} revisiones completadas`;
-            progressPercentage.textContent = `${porcentaje}%`;
-            progressFill.style.width = `${porcentaje}%`;
+  function verEstadoDirecto(codigo, clave) {
+    document.getElementById('codigoConsulta').value = codigo;
+    document.getElementById('claveConsulta').value  = clave;
+    showTab('estado', document.querySelectorAll('.tab-btn')[1]);
+    setTimeout(consultarEstado, 100);
+  }
 
-            timelineContainer.innerHTML = '';
-            articulo.timeline.forEach(item => {
-                timelineContainer.innerHTML += `
-                    <div class="timeline-item">
-                        <div>
-                            <div class="timeline-date">${item.fecha}</div>
-                            <div class="timeline-text">${item.evento}</div>
-                        </div>
-                    </div>
-                `;
-            });
+  /* ===== RESPONDER COMENTARIOS ===== */
+  function autoSaveResp(id) {
+    clearTimeout(respTimers[id]);
+    respTimers[id] = setTimeout(()=>showToast('💾 Borrador guardado','info'),1500);
+  }
 
-            loginScreen.style.display = 'none';
-            statusScreen.style.display = 'block';
-        }
+  function guardarRespuesta(id) {
+    showToast('💾 Respuesta guardada como borrador','success');
+  }
 
-        // ========== EVENT LISTENERS ==========
-        window.cambiarTab = cambiarTab;
-        window.cargarConsulta = cargarConsulta;
+  function marcarRespondido(id) {
+    document.getElementById('badgeC'+id.slice(1)).className = 'badge badge-completada';
+    document.getElementById('badgeC'+id.slice(1)).textContent = 'Respondido';
+    showToast('✅ Respuesta registrada','success');
+  }
 
-        // Formulario
-        resumen.addEventListener('input', () => {
-            actualizarContador();
-            validarFormulario();
-        });
+  /* ===== HELPERS ===== */
+  function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
 
-        [nombre, email, titulo, area, archivo, checkbox].forEach(campo => {
-            if (campo) {
-                campo.addEventListener('input', validarFormulario);
-                campo.addEventListener('change', validarFormulario);
-            }
-        });
+  function updateOnlineStatus() {
+    const online = navigator.onLine;
+    document.getElementById('offlineBar').classList.toggle('show', !online);
+    const s = document.getElementById('statusConn');
+    s.textContent = online?'● En línea':'● Offline';
+    s.style.color  = online?'#4ade80':'#fbbf24';
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
 
-        btnEnviar.addEventListener('click', (e) => {
-            e.preventDefault();
-            procesarEnvio();
-        });
+  // Exponer globales
+  window.showTab=showTab; window.archivoSeleccionado=archivoSeleccionado;
+  window.handleDrop=handleDrop; window.quitarArchivo=quitarArchivo;
+  window.contarPalabras=contarPalabras; window.validarForm=validarForm;
+  window.procesarEnvio=procesarEnvio; window.limpiarForm=limpiarForm;
+  window.consultarEstado=consultarEstado; window.verEstadoDirecto=verEstadoDirecto;
+  window.autoSaveResp=autoSaveResp; window.guardarRespuesta=guardarRespuesta;
+  window.marcarRespondido=marcarRespondido; window.showToast=showToast;
 
-        btnCancelar.addEventListener('click', () => {
-            envioForm.reset();
-            document.querySelectorAll('input, select, textarea').forEach(el => {
-                el.classList.remove('valid', 'invalid');
-            });
-            actualizarContador();
-            validarFormulario();
-        });
-
-        // Portal consulta
-        consultarBtn.addEventListener('click', realizarConsulta);
-
-        volverBtn.addEventListener('click', () => {
-            loginScreen.style.display = 'block';
-            statusScreen.style.display = 'none';
-            articleCode.value = 'ART-2026-001';
-            accessKey.value = 'autor123';
-        });
-
-        // Estado de conexión
-        window.addEventListener('online', () => {
-            isOnline = true;
-            offlineIndicator.classList.remove('show');
-            connectionStatus.textContent = 'Conectado';
-            connectionStatus.style.color = '#38a169';
-        });
-
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            offlineIndicator.classList.add('show');
-            connectionStatus.textContent = 'Offline - trabajando localmente';
-            connectionStatus.style.color = '#ff9800';
-        });
-
-        // ========== INICIALIZACIÓN ==========
-        initDB().then(() => {
-            cargarRecientes();
-            actualizarContador();
-        });
-
-        actualizarContador();
-    </script>
+  init();
+</script>
 </body>
 </html>
